@@ -71,7 +71,7 @@ t = np.linspace(0, total_duration, total_duration * 100)
 print(f"Time array generated with {len(t)} points.")
 
 # 位置配置，每个位置固定有5个传感器
-positions = np.tile(np.arange(20), 5)
+positions = np.tile(np.linspace(100, 1050, 20), 5)
 print(f"Positions array generated with {len(positions)} positions.")
 
 # 定义事件间隔，每次起爆持续30秒，共10次
