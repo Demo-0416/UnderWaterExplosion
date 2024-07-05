@@ -9,7 +9,7 @@ class DataSimulator:
     def simulate_sensor_data(self, sensor_type, position, time_array):
         global data
         print(f"Simulating {sensor_type} data at position {position} for time array of length {len(time_array)}")
-        noise_level = {'Pressure': 0.05, 'Acceleration': 0.05, 'Temperature': 0.5, 'Strain': 0.0001}
+        noise_level = {'Pressure': 0.00001, 'Acceleration': 0.00001, 'Temperature': 0.00001, 'Strain': 0.00001}
         if sensor_type == 'Pressure':
             base_data = self.params['P0'] * np.exp(
                 -self.params['alpha'] * position - self.params['nu'] * time_array) * np.cos(
@@ -71,7 +71,7 @@ t = np.linspace(0, total_duration, total_duration * 100)
 print(f"Time array generated with {len(t)} points.")
 
 # 位置配置，每个位置固定有5个传感器
-positions = np.tile(np.arange(20), 5)
+positions = np.tile(np.linspace(100, 1050, 20), 5)
 print(f"Positions array generated with {len(positions)} positions.")
 
 # 定义事件间隔，每次起爆持续30秒，共10次
