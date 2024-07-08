@@ -1,0 +1,34 @@
+<!-- stream_app/templates/stream_app/home.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sensor Data Stream</title>
+  </head>
+  <body>
+    <h1>Sensor Data Stream</h1>
+    <button onclick="startStreaming()">Start Streaming</button>
+    <ul id="data-stream"></ul>
+
+    <script>
+      function startStreaming() {
+        fetch("/stream_sensor_data/")
+          .then((response) => response.json())
+          .then((data) => console.log(data));
+      }
+
+      setInterval(() => {
+        fetch("/consume_sensor_data/")
+          .then((response) => response.json())
+          .then((data) => {
+            const dataStream = document.getElementById("data-stream");
+            dataStream.innerHTML = "";
+            data.records.forEach((record) => {
+              const listItem = document.createElement("li");
+              listItem.textContent = record;
+              dataStream.appendChild(listItem);
+            });
+          });
+      }, 1000);
+    </script>
+  </body>
+</html>
