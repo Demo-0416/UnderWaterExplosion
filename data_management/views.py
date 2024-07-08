@@ -72,4 +72,5 @@ print(f"Event intervals defined: {event_intervals}")
 def save_sensor_data(request):
     if request.method == 'GET':
      simulator.simulate_and_save_to_csv(100, positions, t, event_intervals, 'SensorData.csv')
+    return JsonResponse({'status': 'save completed'})
     
