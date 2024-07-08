@@ -2,6 +2,7 @@ import threading
 import time
 import numpy as np
 from confluent_kafka import Producer
+import pandas as pd
 
 class DataSimulator:
     def __init__(self, params):
@@ -62,3 +63,25 @@ class DataSimulator:
 
         streaming_thread = threading.Thread(target=stream_data)
         streaming_thread.start()
+    def generate_explosive_events(self, num_sensors, positions, time_array, event_intervals):
+        records = []
+        for start, end in event_intervals:
+            for sensor_id in range(num_sensors):
+                sensor_type = np.random.choice(['Pressure', 'Acceleration', 'Temperature', 'Strain'])
+                position = positions[sensor_id]
+                event_time_array = time_array[(time_array >= start) & (time_array <= end)]
+                sensor_data = self.simulate_sensor_data(sensor_type, position, event_time_array)
+                for i, value in enumerate(sensor_data):
+                    records.append({
+                        'Time': np.float64(event_time_array[i]),
+                        'SensorID': sensor_id,
+                        'Type': sensor_type,
+                        'Position': position,
+                        'Value': value
+                    })
+        return pd.DataFrame(records)
+
+    def simulate_and_save_to_csv(self, num_sensors, positions, time_array, event_intervals, filename):
+         df = self.generate_explosive_events(num_sensors, positions, time_array, event_intervals)
+         df.to_csv(filename, index=False)
+         print(f"Data saved to {filename}")
