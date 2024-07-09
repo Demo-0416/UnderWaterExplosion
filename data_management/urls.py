@@ -6,5 +6,6 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('stream_sensor_data/', views.stream_sensor_data, name='stream_sensor_data'),
     path('consume_sensor_data/', views.consume_sensor_data, name='consume_sensor_data'),
-    path('save_sensor_data/',views.save_sensor_data,name='save_sensor_data')
+    path('save_sensor_data/',views.save_sensor_data,name='save_sensor_data'),
+    path('save_to_db',views.save_to_db,name='save_to_db'),
 ]
