@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "data_processing.apps.DataProcessingConfig",
     "visualization.apps.VisualizationConfig",
     "workflow_management.apps.WorkflowManagementConfig",
+    "user_management.apps.UserManagementConfig",
 ]
 
 MIDDLEWARE = [
