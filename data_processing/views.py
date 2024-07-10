@@ -44,36 +44,36 @@ def consume_sensor_data(request):
         return JsonResponse({'status': 'consuming started'})
 
 
-def plot_filtered_data(request):
-    if request.method == 'GET':
-        global raw_records, filtered_records
-        if not raw_records or not filtered_records:
-            return HttpResponse("No data to plot")
+# def plot_filtered_data(request):
+#     if request.method == 'GET':
+#         global raw_records, filtered_records
+#         if not raw_records or not filtered_records:
+#             return HttpResponse("No data to plot")
 
-        # Create a time array
-        time_interval = 0.01
-        min_length = min(len(raw_records), len(filtered_records))
-        time_array = [i * time_interval for i in range(min_length)]
+#         # Create a time array
+#         time_interval = 0.01
+#         min_length = min(len(raw_records), len(filtered_records))
+#         time_array = [i * time_interval for i in range(min_length)]
 
-        raw_records = raw_records[:min_length]
-        filtered_records = filtered_records[:min_length]
+#         raw_records = raw_records[:min_length]
+#         filtered_records = filtered_records[:min_length]
 
-        plt.figure(figsize=(10, 6))
-        plt.plot(time_array, raw_records, label='Raw Data', alpha=0.7)
-        plt.plot(time_array, filtered_records, label='Filtered Data', alpha=0.7)
-        plt.xlabel('Time (s)')
-        plt.ylabel('Value')
-        plt.title('Raw and Filtered Sensor Data')
-        plt.legend()
+#         plt.figure(figsize=(10, 6))
+#         plt.plot(time_array, raw_records, label='Raw Data', alpha=0.7)
+#         plt.plot(time_array, filtered_records, label='Filtered Data', alpha=0.7)
+#         plt.xlabel('Time (s)')
+#         plt.ylabel('Value')
+#         plt.title('Raw and Filtered Sensor Data')
+#         plt.legend()
 
-        # Save plot to a BytesIO object
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        plt.close()
+#         # Save plot to a BytesIO object
+#         buf = io.BytesIO()
+#         plt.savefig(buf, format='png')
+#         buf.seek(0)
+#         plt.close()
 
-        # Encode the plot in base64 to send as a response
-        image_base64 = base64.b64encode(buf.read()).decode('utf-8')
-        return HttpResponse(f'<img src="data:image/png;base64,{image_base64}" />')
+#         # Encode the plot in base64 to send as a response
+#         image_base64 = base64.b64encode(buf.read()).decode('utf-8')
+#         return HttpResponse(f'<img src="data:image/png;base64,{image_base64}" />')
 
 # URL configuration should include this view
