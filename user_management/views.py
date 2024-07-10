@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .forms import UserLoginForm, UserRegisterForm
+from .forms import UserLoginForm, UserRegisterForm, UserChangePasswordForm
 
 # Create your views here.
 
@@ -44,7 +44,7 @@ def user_register(request):
             # 设置密码
             new_user.set_password(user_register_form.cleaned_data['password'])
             new_user.save()
-            # 保存好数据后立即登录并返回博客列表页面
+            # 保存好数据后立即登录并返回页面
             login(request, new_user)
             return redirect('home')  # 注册后直接登录，定向待定
         else:
@@ -70,3 +70,36 @@ def user_delete(request, id):
             return HttpResponse("你没有操作权限")
     else:
         return HttpResponse("仅接受POST请求")
+
+
+# 用户修改密码
+@login_required(login_url='/user_management/login/')
+def user_change_password(request):
+    state = None
+    if request.method == 'POST':
+        user = request.user
+        user_change_password_form = UserChangePasswordForm(request.POST)
+        if user_change_password_form.is_valid():
+            old_password = user_change_password_form.cleaned_data['old_password']
+            new_password = user_change_password_form.cleaned_data['new_password']
+            repeat_password = user_change_password_form.cleaned_data['repeat_password']
+            if user.check_password(old_password):
+                if not new_password:
+                    state = 'empty'
+                    return HttpResponse("新密码为空")
+                elif new_password != repeat_password:
+                    state = 'repeat_error'
+                    return HttpResponse("密码输入不一致")
+                else:
+                    user.set_password(new_password)
+                    user.save()
+                    state = 'success'
+                    logout(request)
+                    return redirect('userprofile:login')
+            else:
+                state = 'password_error'
+                return HttpResponse("密码错误")
+    elif request.method == 'GET':
+        user_change_password_form = UserChangePasswordForm()
+        context = {'form': user_change_password_form}
+        return render(request, 'user/change_password.html', context)
