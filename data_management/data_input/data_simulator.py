@@ -1,3 +1,4 @@
+import json
 import threading
 import time
 import numpy as np
@@ -32,8 +33,10 @@ class DataSimulator:
         print(f"Generated data for {sensor_type} at position {position}: {data[:5]}...")  # Show first 5 data points for brevity
         return data
 
-    def stream_sensor_data(self, num_sensors, positions, duration, kafka_topic):
-        producer = Producer({'bootstrap.servers': 'localhost:9092'})
+    def stream_sensor_data(self, num_sensors, positions, duration, kafka_topics):
+        producers = {}
+        for sensor_type, topic in kafka_topics.items():
+            producers[sensor_type] = Producer({'bootstrap.servers': 'localhost:9092'})
         
         def delivery_report(err, msg):
             if err is not None:
@@ -49,16 +52,18 @@ class DataSimulator:
                     sensor_type = np.random.choice(['Pressure', 'Acceleration', 'Temperature', 'Strain'])
                     position = positions[sensor_id]
                     sensor_data = self.simulate_sensor_data(sensor_type, position, time_array)
-                    for i, value in enumerate(sensor_data):
-                        record = {
-                            'Time': time.time(),
-                            'SensorID': sensor_id,
-                            'Type': sensor_type,
-                            'Position': position,
-                            'Value': value
-                        }
-                        producer.produce(kafka_topic, value=str(record), callback=delivery_report)
-                producer.flush()
+                    record = {
+                        'Time': time.time(),
+                        'SensorID': sensor_id,
+                        'Type': sensor_type,
+                        'Position': position,
+                        'Value': sensor_data.tolist()  # Convert to list for JSON serialization
+                    }
+                    producer = producers.get(sensor_type)
+                    if producer:
+                        producer.produce(topic=kafka_topics[sensor_type], value=json.dumps(record), callback=delivery_report)
+                for producer in producers.values():
+                    producer.flush()
                 time.sleep(1)
 
         streaming_thread = threading.Thread(target=stream_data)
