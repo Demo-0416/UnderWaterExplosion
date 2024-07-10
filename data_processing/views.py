@@ -8,9 +8,12 @@ from confluent_kafka import Consumer, KafkaError
 from scipy import signal
 import json
 
+from data_processing.preprocess.pre_algorithem import fetch_data
+
 # Global lists to store raw and filtered records
 raw_records = []
 filtered_records = []
+
 
 def iir_filter(input_value, b, a, zi):
     """
@@ -28,48 +31,18 @@ def iir_filter(input_value, b, a, zi):
     output_value, zi = signal.lfilter(b, a, [input_value], zi=zi)
     return output_value[0], zi
 
+
 def consume_sensor_data(request):
     if request.method == 'GET':
-        records = []
-        global raw_records, filtered_records
-        raw_records = []
-        filtered_records = []
         consumer = Consumer({
             'bootstrap.servers': 'localhost:9092',
             'group.id': 'sensor_data_group',
             'auto.offset.reset': 'earliest'
         })
         consumer.subscribe(['temperature_data_topic'])
-
-        def fetch_data():
-            b, a = signal.butter(4, 0.3)  # 4th order Butterworth filter, cutoff frequency 0.3
-            zi = signal.lfilter_zi(b, a) * 0  # Initialize filter state
-            while True:
-                msg = consumer.poll(1.0)
-                if msg is None:
-                    continue
-                if msg.error():
-                    if msg.error().code() == KafkaError._PARTITION_EOF:
-                        continue
-                    else:
-                        print(msg.error())
-                        break
-                record = json.loads(msg.value().decode('utf-8'))
-                value = record.get('Value', None)
-                if value is not None:
-                    if isinstance(value, list) and len(value) > 0:
-                        for v in value:
-                            filtered_value, zi = iir_filter(v, b, a, zi)
-                            raw_records.append(v)
-                            filtered_records.append(filtered_value)
-                    else:
-                        filtered_value, zi = iir_filter(value, b, a, zi)
-                        raw_records.append(value)
-                        filtered_records.append(filtered_value)
-                records.append(record)
-
-        threading.Thread(target=fetch_data).start()
+        threading.Thread(target=lambda: fetch_data(consumer)).start()
         return JsonResponse({'status': 'consuming started'})
+
 
 def plot_filtered_data(request):
     if request.method == 'GET':
@@ -81,7 +54,7 @@ def plot_filtered_data(request):
         time_interval = 0.01
         min_length = min(len(raw_records), len(filtered_records))
         time_array = [i * time_interval for i in range(min_length)]
-        
+
         raw_records = raw_records[:min_length]
         filtered_records = filtered_records[:min_length]
 
