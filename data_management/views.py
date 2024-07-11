@@ -28,21 +28,15 @@ def stream_sensor_data(request):
 
 def home(request):
     return render(request, 'data_management/home.html')
-total_duration = 5 * 60  # 5分钟
-t = np.linspace(0, total_duration, total_duration * 100)
-print(f"Time array generated with {len(t)} points.")
 
-# 位置配置，每个位置固定有5个传感器
-positions = np.tile(np.linspace(100, 1050, 20), 5)
-print(f"Positions array generated with {len(positions)} positions.")
-# 定义事件间隔，每次起爆持续30秒，共10次
-event_duration = 30
-num_events = 10
-event_intervals = [(i * event_duration, (i + 1) * event_duration) for i in range(num_events)]
-print(f"Event intervals defined: {event_intervals}")
+positions = np.linspace(100, 1000, 25)  # 生成 25 个位置，每个位置的值是整数
+duration = 1  # 持续时间 1 秒
+filename = "sensor_data.csv"
+num_explosions = 5  # 爆炸次数
 def save_sensor_data(request):
     if request.method == 'GET':
-     simulator.simulate_and_save_to_csv(100, positions, t, event_intervals, 'SensorData.csv')
+        # 调用 save_sensor_data 方法保存数据到 CSV 文件
+        simulator.save_sensor_data(positions, duration, filename, num_explosions)
     return JsonResponse({'status': 'save completed'})
     
 csv_file_path = 'E:/2024XXQ/UnderWaterExplosion/SensorData.csv'

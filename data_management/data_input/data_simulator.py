@@ -78,28 +78,30 @@ class DataSimulator:
 
         threading.Thread(target=stream_data).start()
 
-    def generate_explosive_events(self, positions, event_intervals):
+    def save_sensor_data(self, positions, duration, filename, num_explosions):
         records = []
+        explosion_interval = 30  # 每次爆炸之间的间隔
+        total_duration = num_explosions * (duration + explosion_interval)
+        time_array = np.arange(0, duration, 0.01)  # 生成从0开始，每0.01s间隔的时间数组
         sensor_types = ['Acceleration', 'Strain', 'Temperature', 'Pressure']
-        for start, end in event_intervals:
-            start_time = 0  # Start from 0 seconds
-            end_time = (end - start) * 100  # Convert end time to 0.01s interval count
-            time_array = np.arange(start_time, end_time, 0.01)
+        
+        for explosion in range(num_explosions):
+            explosion_start_time = explosion * (duration + explosion_interval)
             for location_index, position in enumerate(positions):
                 for i, sensor_type in enumerate(sensor_types):
                     sensor_id = location_index * 4 + i
-                    for timestamp in time_array:
-                        sensor_data = self.simulate_sensor_data(sensor_type, position, timestamp)
-                        records.append({
+                    for t in time_array:
+                        timestamp = explosion_start_time + t
+                        sensor_data = self.simulate_sensor_data(sensor_type, position, np.array([t]))[0]
+                        record = {
                             'Time': timestamp,
                             'SensorID': sensor_id,
                             'Type': sensor_type,
                             'Position': position,
-                            'Value': sensor_data
-                        })
-        return pd.DataFrame(records)
-
-    def simulate_and_save_to_csv(self, positions, event_intervals, filename):
-        df = self.generate_explosive_events(positions, event_intervals)
+                            'Value': sensor_data  # 单个数据点
+                        }
+                        records.append(record)
+        
+        df = pd.DataFrame(records)
         df.to_csv(filename, index=False)
         print(f"Data saved to {filename}")
