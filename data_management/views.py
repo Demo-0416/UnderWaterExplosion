@@ -18,7 +18,7 @@ simulator = DataSimulator(params_simulator)
 data_saver=DataSaver
 def stream_sensor_data(request):
     if request.method == 'GET':
-        positions = np.linspace(100, 1100, 25)  # 生成 25 个位置
+        positions = np.linspace(100, 1000, 25)  # 生成 25 个位置
         kafka_topics = [f'location_{i}_data_topic' for i in range(1, 26)]
         
         # 启动数据流线程
