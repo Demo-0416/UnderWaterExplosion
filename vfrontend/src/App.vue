@@ -1,21 +1,17 @@
 <script setup>
-import Home from './views/Home.vue'
-
-import mymain from './components/Main.vue';
+import { RouterLink, RouterView } from 'vue-router'
 </script>
 
 <template>
-  <div class="laybox">
-    <Home />
-     <!-- <mymain/> -->
-    <!-- <DragTest/> -->
-     <!-- <ReadTest/> -->
-      <!-- <CanvaTest4/> -->
-  </div>
-
+ <div class="laybox">
+   <router-view></router-view>
+ </div>
 </template>
 
+
+
 <style scoped>
+
 .laybox {
   position: absolute;
   top: 0;
@@ -23,4 +19,6 @@ import mymain from './components/Main.vue';
   right: 0;
   bottom: 0;
 }
+
+
 </style>
