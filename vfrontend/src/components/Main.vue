@@ -1,13 +1,21 @@
 <template>
     <div class="main-container">
+      <el-steps style="max-width: 600px" :active="active" finish-status="success" simple>
+        <el-step title="Step 1" :status="active === 1 ? 'success' : 'process'" @click="handleStepClick(1)" />
+        <el-step title="Step 2" :status="active === 2 ? 'success' : 'process'" @click="handleStepClick(2)" />
+        <el-step title="Step 3" :status="active === 3 ? 'success' : 'process'" @click="handleStepClick(3)" />
+      </el-steps>
+
       <el-text>时序特征</el-text>
-      <VueDraggableNext v-model="charts" class="charts-container">
+      <VueDraggableNext  class="charts-container">
         <div v-for="(chart, index) in dir1charts" :key="chart.id" class="chart-item">
-          <MyChart :chartOptions="chart.options"></MyChart>
+          
+            <MyChart v-if="selected1Charts[index]" :chartOptions="chart.options" />
+         
         </div> 
       </VueDraggableNext>
       <el-text>自由场压力</el-text>
-      <VueDraggableNext v-model="charts" class="charts-container">
+      <VueDraggableNext  class="charts-container">
         <div v-for="(chart, index) in dir1charts" :key="chart.id" class="chart-item">
           <MyChart :chartOptions="chart.options"></MyChart>
         </div> 
@@ -16,11 +24,24 @@
   </template>
   
   <script setup>
-  import { ref } from 'vue';
+  import { ref,defineProps,onMounted } from 'vue';
   import { VueDraggableNext } from 'vue-draggable-next';
 
   import MyChart from '@/components/Mychart.vue';
-  
+
+  const active = ref(1);
+  const handleStepClick = (index) => {  
+
+    active.value = index;
+
+  };
+  const props = defineProps({
+    selected1Charts: {
+      type: Array,  
+      required: true,
+      default: () => [true,true]
+    },
+  });
   const dir1charts = ref([
     { id: 1, options:  {
       title: {
@@ -123,7 +144,7 @@
         }],
           
       } },
-    { id: 3, name: 'Chart 3', options: {  
+      { id: 3, name: 'Chart 3', options: {  
         tooltip: {},  
         animation: false,
         toolbox: {  
@@ -240,7 +261,11 @@
   const onDragEnd = () => {
 
   };  
-  
+  onMounted(() => {
+    console.log(props.select1Chart);
+
+  });
+ 
   </script>
   
   <style scoped>

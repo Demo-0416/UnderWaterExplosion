@@ -1,12 +1,9 @@
 <template>
 
     <el-row class="mb">
-        <el-col :span="6" :offset="1">  <el-button @click="selectCsvFile" color="#307af2" size="small">选择csv文件</el-button></el-col>
-        <el-col :span="6">  
-            <el-text v-if="!selectedFileName">未选择文件</el-text>
-               <el-text v-else>{{ selectedFileName }}</el-text>
-      </el-col>
-        <el-col :span="6" :offset="3">  <el-button @click="uploadFile" :disabled="!selectedFile" size="small">开始数据仿真</el-button></el-col>
+        <el-col :span="10" :offset="1">  <el-button @click="selectCsvFile" color="#307af2">选择文件</el-button> <el-text v-if="!selectedFileName">未选择文件</el-text>
+            <el-text v-else>{{ selectedFileName }}</el-text></el-col>
+        <el-col :span="6" :offset="3">  <el-button  class="uploadbutton" @click="uploadFile" :disabled="!selectedFile">开始数据仿真</el-button></el-col>
     </el-row>
     
        
@@ -21,7 +18,7 @@ import { ref } from 'vue';
 const selectedFile = ref(null);
 const selectedFileName = ref('');
 
-// 选择CSV文件的方法  
+// 选择文件的方法  
 function selectCsvFile() {
     const input = document.createElement('input');
     input.type = 'file';
@@ -69,6 +66,11 @@ function uploadFile() {
    }
    
 .el-text{
-    font-size: 12px;
+    font-size: 13px;
+   
 }
+.uploadbutton:hover {  
+    background-color: ; /* 例如：'#409EFF'（天蓝色更深的色调） */  
+  }   
+    
 </style>
