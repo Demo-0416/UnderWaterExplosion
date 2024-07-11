@@ -12,7 +12,6 @@ class DataSimulator:
         print(f"Initialized DataSimulator with params: {params}")
 
     def simulate_sensor_data(self, sensor_type, position, time_array):
-        global base_data, noise
         noise_level = {'Pressure': 0.00001, 'Acceleration': 0.00001, 'Temperature': 0.00001, 'Strain': 0.00001}
 
         def generate_complex_noise(base_shape, noise_level):
@@ -46,10 +45,10 @@ class DataSimulator:
             f"Generated data for {sensor_type} at position {position}: {data[:5]}...")  # Show first 5 data points for brevity
         return data
 
-    def stream_sensor_data(self, num_sensors, positions, duration, kafka_topics):
+    def stream_sensor_data(self, positions, duration, kafka_topics):
         producers = {}
-        for sensor_type, topic in kafka_topics.items():
-            producers[sensor_type] = Producer({'bootstrap.servers': 'localhost:9092'})
+        for topic in kafka_topics:
+            producers[topic] = Producer({'bootstrap.servers': 'localhost:9092'})
 
         def delivery_report(err, msg):
             if err is not None:
@@ -60,28 +59,28 @@ class DataSimulator:
         def stream_data():
             time_array = np.linspace(0, 1, 100)
             end_time = time.time() + duration
+            sensor_types = ['Acceleration', 'Strain', 'Temperature', 'Pressure']
             while time.time() < end_time:
-                for sensor_id in range(num_sensors):
-                    sensor_type = np.random.choice(['Pressure', 'Acceleration', 'Temperature', 'Strain'])
-                    position = positions[sensor_id]
-                    sensor_data = self.simulate_sensor_data(sensor_type, position, time_array)
-                    record = {
-                        'Time': time.time(),
-                        'SensorID': sensor_id,
-                        'Type': sensor_type,
-                        'Position': position,
-                        'Value': sensor_data.tolist()  # Convert to list for JSON serialization
-                    }
-                    producer = producers.get(sensor_type)
-                    if producer:
-                        producer.produce(topic=kafka_topics[sensor_type], value=json.dumps(record),
-                                         callback=delivery_report)
+                for location_index, position in enumerate(positions):
+                    for i, sensor_type in enumerate(sensor_types):
+                        sensor_id = location_index * 4 + i
+                        sensor_data = self.simulate_sensor_data(sensor_type, position, time_array)
+                        record = {
+                            'Time': time.time(),
+                            'SensorID': sensor_id,
+                            'Type': sensor_type,
+                            'Position': position,
+                            'Value': sensor_data.tolist()  # Convert to list for JSON serialization
+                        }
+                        topic = kafka_topics[location_index]
+                        producer = producers.get(topic)
+                        if producer:
+                            producer.produce(topic=topic, value=json.dumps(record), callback=delivery_report)
                 for producer in producers.values():
                     producer.flush()
                 time.sleep(1)
 
-        streaming_thread = threading.Thread(target=stream_data)
-        streaming_thread.start()
+        threading.Thread(target=stream_data).start()
 
     def generate_explosive_events(self, num_sensors, positions, time_array, event_intervals):
         records = []

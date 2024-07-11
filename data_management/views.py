@@ -18,16 +18,11 @@ simulator = DataSimulator(params_simulator)
 data_saver=DataSaver
 def stream_sensor_data(request):
     if request.method == 'GET':
-        positions = np.tile(np.linspace(100, 1050, 20), 5)
-        kafka_topics = {
-    'Pressure': 'pressure_data_topic',
-    'Acceleration': 'acceleration_data_topic',
-    'Temperature': 'temperature_data_topic',
-    'Strain': 'strain_data_topic'
-    }
+        positions = np.linspace(100, 1100, 25)  # 生成 25 个位置
+        kafka_topics = [f'location_{i}_data_topic' for i in range(1, 26)]
         
         # 启动数据流线程
-        threading.Thread(target=simulator.stream_sensor_data, args=(100, positions, 60, kafka_topics)).start()
+        threading.Thread(target=simulator.stream_sensor_data, args=(positions, 60, kafka_topics)).start()
         
         return JsonResponse({'status': 'streaming started'})
 
