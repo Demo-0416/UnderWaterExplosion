@@ -1,14 +1,9 @@
 import threading
-import matplotlib.pyplot as plt
-import io
-import base64
-from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render
-from confluent_kafka import Consumer, KafkaError
+from django.http import HttpResponse, JsonResponse
+from confluent_kafka import Consumer
 from scipy import signal
-import json
 
-from data_processing.preprocess.pre_algorithem import fetch_data
+from data_processing.preprocess.pre_algorithem import fetch_data,generate_plots
 
 # Global lists to store raw and filtered records
 raw_records = []
@@ -34,46 +29,27 @@ def iir_filter(input_value, b, a, zi):
 
 def consume_sensor_data(request):
     if request.method == 'GET':
+        print("Starting consumer setup...")
         consumer = Consumer({
             'bootstrap.servers': 'localhost:9092',
             'group.id': 'sensor_data_group',
             'auto.offset.reset': 'earliest'
         })
-        consumer.subscribe(['temperature_data_topic'])
-        threading.Thread(target=lambda: fetch_data(consumer)).start()
-        return JsonResponse({'status': 'consuming started'})
+        
+        kafka_topics = [f'location_{i}_data_topic' for i in range(1, 26)]
+        print(f"Subscribing to topics: {kafka_topics}")
+        
+        consumer.subscribe(kafka_topics)
+        
+        print("Fetching data from Kafka...")
+        records = fetch_data(consumer)
+        print("Data fetched successfully.")
+        
+        print("Generating plots...")
+        plot_html = generate_plots(records)
+        print("Plots generated successfully.")
+        
+        return HttpResponse(plot_html)
 
 
-# def plot_filtered_data(request):
-#     if request.method == 'GET':
-#         global raw_records, filtered_records
-#         if not raw_records or not filtered_records:
-#             return HttpResponse("No data to plot")
 
-#         # Create a time array
-#         time_interval = 0.01
-#         min_length = min(len(raw_records), len(filtered_records))
-#         time_array = [i * time_interval for i in range(min_length)]
-
-#         raw_records = raw_records[:min_length]
-#         filtered_records = filtered_records[:min_length]
-
-#         plt.figure(figsize=(10, 6))
-#         plt.plot(time_array, raw_records, label='Raw Data', alpha=0.7)
-#         plt.plot(time_array, filtered_records, label='Filtered Data', alpha=0.7)
-#         plt.xlabel('Time (s)')
-#         plt.ylabel('Value')
-#         plt.title('Raw and Filtered Sensor Data')
-#         plt.legend()
-
-#         # Save plot to a BytesIO object
-#         buf = io.BytesIO()
-#         plt.savefig(buf, format='png')
-#         buf.seek(0)
-#         plt.close()
-
-#         # Encode the plot in base64 to send as a response
-#         image_base64 = base64.b64encode(buf.read()).decode('utf-8')
-#         return HttpResponse(f'<img src="data:image/png;base64,{image_base64}" />')
-
-# URL configuration should include this view

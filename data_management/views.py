@@ -18,11 +18,14 @@ simulator = DataSimulator(params_simulator)
 data_saver=DataSaver
 def stream_sensor_data(request):
     if request.method == 'GET':
-        positions = np.linspace(100, 1000, 25)  # 生成 25 个位置
+        positions = np.linspace(100, 1000, 25)  # 生成 25 个位置，每个位置的值是整数
         kafka_topics = [f'location_{i}_data_topic' for i in range(1, 26)]
         
+        explosion_duration = 1  # 每次爆炸持续时间
+        num_explosions = 5  # 爆炸次数
+        
         # 启动数据流线程
-        threading.Thread(target=simulator.stream_sensor_data, args=(positions, 60, kafka_topics)).start()
+        threading.Thread(target=simulator.stream_sensor_data, args=(positions, explosion_duration, kafka_topics, num_explosions)).start()
         
         return JsonResponse({'status': 'streaming started'})
 

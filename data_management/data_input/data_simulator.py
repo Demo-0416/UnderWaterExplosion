@@ -42,7 +42,7 @@ class DataSimulator:
         data = base_data + noise
         return data
 
-    def stream_sensor_data(self, positions, duration, kafka_topics):
+    def stream_sensor_data(self, positions, explosion_duration, kafka_topics, num_explosions):
         producers = {}
         for topic in kafka_topics:
             producers[topic] = Producer({'bootstrap.servers': 'localhost:9092'})
@@ -54,27 +54,31 @@ class DataSimulator:
                 print('Message delivered to {} [{}] {}'.format(msg.topic(), msg.partition(), msg.value()))
 
         def stream_data():
-            time_array = np.arange(0, duration, 0.01)
+            time_array = np.arange(0, explosion_duration, 0.01)  # 每个爆炸持续时间的时间数组
             sensor_types = ['Acceleration', 'Strain', 'Temperature', 'Pressure']
-            for timestamp in time_array:
+            explosion_interval = 30  # 每次爆炸之间的间隔
+            for explosion in range(num_explosions):
+                explosion_start_time = explosion * (explosion_duration + explosion_interval)
                 for location_index, position in enumerate(positions):
                     for i, sensor_type in enumerate(sensor_types):
                         sensor_id = location_index * 4 + i
-                        sensor_data = self.simulate_sensor_data(sensor_type, position, timestamp)
-                        record = {
-                            'Time': timestamp,
-                            'SensorID': sensor_id,
-                            'Type': sensor_type,
-                            'Position': position,
-                            'Value': sensor_data  # Each record has only one data point
-                        }
-                        topic = kafka_topics[location_index]
-                        producer = producers.get(topic)
-                        if producer:
-                            producer.produce(topic=topic, value=json.dumps(record), callback=delivery_report)
+                        for t in time_array:
+                            timestamp = explosion_start_time + t
+                            sensor_data = self.simulate_sensor_data(sensor_type, position, np.array([t]))[0]
+                            record = {
+                                'Time': float(timestamp),
+                                'SensorID': int(sensor_id),
+                                'Type': sensor_type,
+                                'Position': float(position),
+                                'Value': float(sensor_data)  # 单个数据点
+                            }
+                            topic = kafka_topics[location_index]
+                            producer = producers.get(topic)
+                            if producer:
+                                producer.produce(topic=topic, value=json.dumps(record), callback=delivery_report)
                 for producer in producers.values():
                     producer.flush()
-                # time.sleep(0.01)  # Ensure 0.01s interval between each data point
+                # time.sleep(explosion_interval)
 
         threading.Thread(target=stream_data).start()
 
