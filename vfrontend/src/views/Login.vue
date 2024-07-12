@@ -24,7 +24,7 @@
           </el-form-item>
 
         </el-form>
-        <el-button class="btn" type="primary" v-if="isActive === 'login'" @click="handleLogin">登录</el-button>
+        <el-button class="btn" type="primary" v-if="isActive === 'login'" @click="$router.push('/')">登录</el-button>
         <el-button class="btn" type="primary" v-else @click="handleRegister">注册</el-button>
       </el-row>
     </div>
