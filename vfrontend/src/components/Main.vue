@@ -1,10 +1,6 @@
 <template>
     <div class="main-container">
-      <el-steps style="max-width: 600px" :active="active" finish-status="success" simple>
-        <el-step title="Step 1" :status="active === 1 ? 'success' : 'process'" @click="handleStepClick(1)" />
-        <el-step title="Step 2" :status="active === 2 ? 'success' : 'process'" @click="handleStepClick(2)" />
-        <el-step title="Step 3" :status="active === 3 ? 'success' : 'process'" @click="handleStepClick(3)" />
-      </el-steps>
+     
 
       <el-text>时序特征</el-text>
       <VueDraggableNext  class="charts-container">
@@ -29,12 +25,7 @@
 
   import MyChart from '@/components/Mychart.vue';
 
-  const active = ref(1);
-  const handleStepClick = (index) => {  
 
-    active.value = index;
-
-  };
   const props = defineProps({
     selected1Charts: {
       type: Array,  
@@ -277,9 +268,14 @@
   } 
   
   .chart-item {
-    flex: 1 1 33.33%; /* 一行最多放置三个图表 */
-    max-width: 33.33%; /* 图表的宽度 */
+    flex: 1 1 32.13%; /* 一行最多放置三个图表 */
+    margin-left: 0.2%; /* 图表之间的间距 */
+    max-width: 33.3%; /* 图表的宽度 */
     height: 350px; /* 设置图表高度 */
+    border: 0.5px solid #ccc; /* 图表的边框 */
+    border-radius: 5px; /* 图表的圆角 */
+    /*box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 图表的阴影 */
+   
   }
 
 
