@@ -209,12 +209,11 @@
           y: '10%'  
         },  
         xAxis: {  
-          type: 'category',  
-          data: ['Time 1', 'Time 2', 'Time 3', 'Time 4', 'Time 5'] // 时间轴  
+          type: 'value',  
+          
         },  
         yAxis: {  
-          type: 'category',  
-          data: ['Freq 1', 'Freq 2', 'Freq 3', 'Freq 4', 'Freq 5'] // 频率轴  
+          type: 'value',  
         },  
         visualMap: {  
           min: 0,  
@@ -226,17 +225,23 @@
         },  
         series: [{  
           name: 'Spectrogram',  
-          type: 'heatmap',  
+          type: 'line',  
+          stack: 'all', // 堆叠图的设置
+          areaStyle: {},// 面积图的设置
+          data: [1, 2, 3, 4, 5], // 线的数据
+          
           data: [  
             // 这里的数据应该是一个二维数组，表示不同时间和频率下的强度  
-            [5, 1, 0, 0, 0],  
-            [0, 2, 0, 39, 10],  
-            [0, 0, 0, 0, 0],  
-            [0, 0, 0, 0, 0],  
-            [0, 0, 0, 0, 0]  
+            [0, 1],  
+            [1, 2],  
+            [2, 6],  
+            [3, 4],  
+            [4, 3],  
           ],  
           label: {  
-            show: true  
+            show: true
+          
+
           },  
           emphasis: {  
             itemStyle: {  
