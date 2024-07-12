@@ -2,8 +2,9 @@
 
   <el-row class="nav-list">
     <el-col :span="24">
-      <el-menu class="mymenu" border-right="none" @open="handleOpen" @close="handleClose"
-        popper-offset="10">
+
+      <el-menu class="mymenu" @open="handleOpen" @close="handleClose"
+        popper-offset="10">     
         <el-sub-menu index="1">
           <template #title>
             <el-checkbox v-model="dirchecked1" size="large"
@@ -112,11 +113,11 @@ const funk = () => {
 <style scoped>
 
 .el-menu {
-  width: 200px;
+  width: 180px;
   display: flex;  
 
   flex-direction: column;
-  height: 100vh;
+  border: 0;
   background-color: var(--header-bg-color,'#fff');
   color: var(--text-color,'blue');
   

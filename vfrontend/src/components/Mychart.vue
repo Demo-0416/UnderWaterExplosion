@@ -37,8 +37,9 @@
   
   <style scoped>
   .my-chart {
-    width: 100%;
+    width: 95%;
     height: 100%;
+    margin-left: 5px;
   }
   </style>
   
