@@ -15,7 +15,7 @@ def user_login(request):
             user = authenticate(username=data['username'], password=data['password'])
             if user:
                 login(request, user)
-                return redirect('')  # 登录后定向待定
+                return redirect('data_management: home')  # 登录后定向待定
             else:
                 return JsonResponse({'code': '1', 'state': '账号或密码有误'})
         else:
@@ -31,7 +31,7 @@ def user_login(request):
 # 用户登出
 def user_logout(request):
     logout(request)
-    return redirect('')  # 登出后定向待定
+    return redirect('data_management: home')  # 登出后定向待定
 
 
 # 用户注册
@@ -42,7 +42,7 @@ def user_register(request):
             user = form.save()
             login(request, user)  # 登录用户
             # 可以重定向到首页或其他页面
-            return redirect('') # 定向待定
+            return redirect('data_management: home') # 定向待定
     else:
         form = UserRegisterForm()
     return render(request, 'register.html', {'form': form})
