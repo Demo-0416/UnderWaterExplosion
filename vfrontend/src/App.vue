@@ -2,13 +2,15 @@
 // import { RouterLink, RouterView } from 'vue-router'
 import loadnewfile from './components/loadnewfile.vue';
 import List from './views/List.vue';
+import Login from './views/Login.vue';
 </script>
 
 <template>
  <div class="laybox">
    <!-- <router-view></router-view> -->
       <!-- <loadnewfile></loadnewfile> -->
-       <list></List>
+       <!-- <list></List> -->
+         <login></Login>
  </div>
 </template>
 
