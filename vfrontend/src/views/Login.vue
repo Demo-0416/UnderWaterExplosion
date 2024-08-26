@@ -291,7 +291,7 @@ const particlesLoaded = async (container) => {
  padding: 0 10px;
  font-size: 16px;
  transition: all 0.3s ease;
-
+ 
   &:focus {
     border-color: #0a9cdb;
     outline: none;
