@@ -44,12 +44,16 @@ def consume_sensor_data(request):
         print("Fetching data from Kafka...")
         records = fetch_data(consumer)
         print("Data fetched successfully.")
+
+
+        return JsonResponse(records, safe=False)
+
+        # print("Generating plots...")
+        # plot_html = generate_plots(records)
+        # print("Plots generated successfully.")
         
-        print("Generating plots...")
-        plot_html = generate_plots(records)
-        print("Plots generated successfully.")
-        
-        return HttpResponse(plot_html)
+        # return HttpResponse(plot_html)
+
 
 
 

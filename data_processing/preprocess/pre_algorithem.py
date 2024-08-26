@@ -53,7 +53,7 @@ def fetch_data(consumer):
 
     message_count = 0
 
-    while message_count <30:
+    while message_count <5:
         msg = consumer.poll(1.0)
         if msg is None:
             print("OK")
@@ -75,8 +75,10 @@ def fetch_data(consumer):
             filtered_records[sensor_type].append((timestamp, filtered_value[0]))
             records[sensor_type].append(record)
             print(f"Fetched and processed record: {record}")
+    # print(records)
+    processed_records = process_records(records)
     
-    return records
+    return processed_records
 
 def generate_plots(records):
     fig, axs = plt.subplots(2, 2, figsize=(15, 10))
@@ -104,3 +106,30 @@ def generate_plots(records):
 
     plt.tight_layout()
     return mpld3.fig_to_html(fig)
+
+def process_records(records):
+    processed = {}
+
+    for sensor_type, sensor_data in records.items():
+        processed[sensor_type] = []
+        for record in sensor_data:
+            sensor_id = record['SensorID']
+            position = record['Position']
+            time_value_pair = {'Time': record['Time'], 'Value': record['Value']}
+
+            sensor_data_entry = next((item for item in processed[sensor_type] if item['SensorID'] == sensor_id), None)
+
+            if not sensor_data_entry:
+                sensor_data_entry = {
+                    'SensorID': sensor_id,
+                    'Type': sensor_type,
+                    'Position': position,
+                    'X-axis-name': 'Time',
+                    'Y-axis-name': 'Value',
+                    'data': []
+                }
+                processed[sensor_type].append(sensor_data_entry)
+
+            sensor_data_entry['data'].append(time_value_pair)
+
+    return processed
