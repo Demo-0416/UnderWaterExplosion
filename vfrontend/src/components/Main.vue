@@ -24,7 +24,8 @@
   import { VueDraggableNext } from 'vue-draggable-next';
 
   import MyChart from '@/components/Mychart.vue';
-
+  import * as echarts from 'echarts';
+  import axios from 'axios';
 
   const props = defineProps({
     selected1Charts: {
@@ -33,6 +34,143 @@
       default: () => [true,true]
     },
   });
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/data');
+      print(response.data);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const dataZoomOpts1 =  [
+      {
+        type: 'slider', // 滑动条类型  
+        show: true, // 显示滑动条  
+        xAxisIndex: [0], // 控制X轴的缩放和滑动  
+        start: 0, // 数据窗口的起始百分比  
+        end: 40,// 数据窗口的结束百分比 
+        textStyle: {
+          color: 'blue',
+          fontSize: 12,
+        },
+        backgroundColor: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(128, 255, 165)'
+          },
+          {
+            offset: 1,
+            color: 'rgb(1, 191, 236)'
+          }
+        ]),
+        dataBackground: {
+          lineStyle: {
+            color: 'red',
+            opacity: 0.62, //数据阴影的线条透明度
+          },
+          areaStyle: {
+            color: 'green',
+            shadowBlur: 0,
+            opacity: 0,
+          },
+        },
+        borderRadius: 5,
+        borderColor: 'red',
+        handleStyle: {
+          borderColor: 'red',
+          borderWidth: 2,
+        },
+        brushSelect: false,
+        brushStyle: {
+          color: '#fff',
+          borderColor: 'blue',
+        },
+        emphasis: {
+          handleStyle: {
+            color: 'red',
+          },
+          moveHandleStyle: {
+            color: 'red',
+          }
+        }
+      },
+      {
+        type: 'inside', // 内置的缩放控制器  
+        start: 0,
+        end: 40
+      }
+    ]
+
+const dataZoomOpts2= [
+      {
+        type: 'slider', // 滑动条类型  
+        show: true, // 显示滑动条  
+        xAxisIndex: [0], // 控制X轴的缩放和滑动  
+        start: 0, // 数据窗口的起始百分比  
+        end: 40,// 数据窗口的结束百分比 
+        textStyle: {
+          color: 'blue',
+          fontSize: 12,
+        },
+        backgroundColor: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(128, 255, 165)'
+          },
+          {
+            offset: 1,
+            color: 'rgb(1, 191, 236)'
+          }
+        ]),
+        dataBackground: {
+          lineStyle: {
+            color: 'red',
+
+            opacity: 0.62, //数据阴影的线条透明度
+          },
+          areaStyle: {
+            color: 'green',
+            shadowBlur: 0,
+            opacity: 0,
+          },
+
+        },
+        borderRadius: 5,
+        borderColor: 'red',
+
+
+        handleStyle: {
+          borderColor: 'red',
+          borderWidth: 2,
+        },
+
+
+
+        brushSelect: false,
+        brushStyle: {
+          color: '#fff',
+          borderColor: 'blue',
+        },
+        emphasis: {
+          handleStyle: {
+            color: 'red',
+          },
+          moveHandleStyle: {
+            color: 'red',
+          }
+        }
+
+
+      },
+      {
+        type: 'inside', // 内置的缩放控制器  
+        start: 0,
+        end: 40
+      }
+    ]    
   const dir1charts = ref([
     { id: 1, options:  {
       title: {
@@ -273,10 +411,10 @@
   } 
   
   .chart-item {
-    flex: 1 1 32.13%; /* 一行最多放置三个图表 */
-    margin-left: 0.2%; /* 图表之间的间距 */
-    max-width: 33.3%; /* 图表的宽度 */
-    height: 350px; /* 设置图表高度 */
+    flex: 1 1 48%; /* 一行最多放置三个图表 */
+    margin-left: 1%; /* 图表之间的间距 */
+    max-width: 49%; /* 图表的宽度 */
+    height: 500px; /* 设置图表高度 */
     border: 0.5px solid #ccc; /* 图表的边框 */
     border-radius: 5px; /* 图表的圆角 */
     /*box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 图表的阴影 */

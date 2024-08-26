@@ -1,12 +1,14 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+// import { RouterLink, RouterView } from 'vue-router'
 import loadnewfile from './components/loadnewfile.vue';
+import List from './views/List.vue';
 </script>
 
 <template>
  <div class="laybox">
    <!-- <router-view></router-view> -->
-      <loadnewfile></loadnewfile>
+      <!-- <loadnewfile></loadnewfile> -->
+       <list></List>
  </div>
 </template>
 
