@@ -99,7 +99,8 @@ const handleRegister = async() => {
       password2: "test_password",
       email: "2240829627@qq.com"
     };
-    const res = await axios.post('http://127.0.0.1:8000/user_management/register/', testform)
+    // const res = await axios.post('http://127.0.0.1:8000/user_management/register/', testform)
+    const res = await axios.get('http://127.0.0.1:8000/data_management/stream_sensor_data')
     console.log(res.data)
     if (res.data.error_code === 0) {
       ElMessage.success("注册成功")
