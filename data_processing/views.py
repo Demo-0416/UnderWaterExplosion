@@ -4,6 +4,8 @@ from scipy import signal
 from confluent_kafka import Consumer, KafkaException
 import json
 from data_processing.preprocess.pre_algorithem import fetch_data,generate_plots
+from data_processing.feature.feature_extraction import extract_features
+from django.core.cache import cache
 
 # Global lists to store raw and filtered records
 raw_records = []
@@ -44,6 +46,7 @@ def consume_sensor_data(request):
 
             print("Fetching data from Kafka...")
             records = fetch_data(consumer)
+            cache.set('preprocessed_data', records, timeout=3600)
             print("Data fetched successfully.")
             
             return JsonResponse({
@@ -86,3 +89,41 @@ def consume_sensor_data(request):
 
 
 
+def extract_features_view(request):
+    if request.method == 'GET':
+        try:
+            # consumer = Consumer({
+            #     'bootstrap.servers': 'localhost:9092',
+            #     'group.id': 'sensor_data_group',
+            #     'auto.offset.reset': 'earliest'
+            # })
+            # kafka_topics = [f'location_{i}_data_topic' for i in range(1, 26)]
+            # consumer.subscribe(kafka_topics)
+
+            # records = fetch_data(consumer)
+            # features = extract_features(records)
+            preprocessed_data = cache.get('preprocessed_data')
+            if not preprocessed_data:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'No preprocessed data available. Please preprocess the data first.'
+                }, status=404)
+
+            # 进行特征提取
+            features = extract_features(preprocessed_data)
+            return JsonResponse({
+                'status': 'success',
+                'features': features
+            }, status=200, safe=False)
+
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
+
+    else:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Method not allowed. Only GET requests are supported.'
+        }, status=405)
