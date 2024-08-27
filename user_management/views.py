@@ -9,7 +9,6 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .forms import UserLoginForm, UserRegisterForm, UserChangePasswordForm
-from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 # 用户登录
 @csrf_exempt
@@ -35,26 +34,47 @@ def user_login(request):
 
 
 # 用户登出
+@csrf_exempt
 def user_logout(request):
-    logout(request)
-    return redirect('/data_management/')  # 登出后定向待定
+    if request.method == 'GET':
+        logout(request)
+        return JsonResponse({'code': '0', 'state': '登出成功'})
 
 
 # 用户注册
 @csrf_exempt
+# def user_register(request):
+#     if request.method == 'POST':
+#         form = UserRegisterForm(request.POST)
+#         if form.is_valid():
+#             user = form.save()
+#             authenticate_user = authenticate(username=user.username, password=form.cleaned_data['password1'])
+#             login(request, authenticate_user)  # 登录用户
+#             # 可以重定向到首页或其他页面
+#             return redirect('/data_management/') # 定向待定
+#     else:
+#         form = UserRegisterForm()
+#     return render(request, 'register.html', {'form': form})
 def user_register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            authenticate_user = authenticate(username=user.username, password=form.cleaned_data['password1'])
-            login(request, authenticate_user)  # 登录用户
-            # 可以重定向到首页或其他页面
-            return redirect('/data_management/') # 定向待定
-    else:
+            user_name = form.cleaned_data['username']
+            user_email = form.cleaned_data['email']
+            password1 = form.cleaned_data['password1']
+            password2 = form.cleaned_data['password2']
+            if password1 and password2 and password1 != password2:
+                return JsonResponse({'code': '1', 'state': '密码输入不一致'})
+            if User.objects.filter(username=user_name).exists():
+                return JsonResponse({'code': '2', 'state': '用户名已存在'})
+            user = User.objects.create_user(user_name, user_email, password1)
+            user.save()
+            return JsonResponse({'code': '0', 'state': '注册成功'})
+        else:
+            return JsonResponse({'code': '3', 'state': '请填入必要信息！'})
+    elif request.method == 'GET':
         form = UserRegisterForm()
-    return render(request, 'register.html', {'form': form})
-
+        return render(request, 'register.html', {'form': form})
 
 # 用户删除
 @csrf_exempt
@@ -67,9 +87,9 @@ def user_delete(request, id):
             user.delete()
             return redirect('user_management:login')
         else:
-            return JsonResponse({'code': '2', 'context': '你没有操作权限'})
+            return JsonResponse({'code': '2', 'state': '你没有操作权限'})
     else:
-        return JsonResponse({'code': '1', 'context': '仅接受POST请求'})
+        return JsonResponse({'code': '1', 'state': '仅接受POST请求'})
 
 
 # 用户修改密码
