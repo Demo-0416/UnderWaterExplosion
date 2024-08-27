@@ -3,6 +3,10 @@
     <vue-particles id="tsparticles" :particlesInit="particlesInit" :particlesLoaded="particlesLoaded"
       :options="data.options" />
     <div class="login-card">
+      <span/>
+      <span/>
+      <span/>
+      <span/>
       <!-- <el-row style="width: 100%;margin: 0;padding: 0px;">
                 <el-col :span="12"><el-link id='denglu' onmouseover='onMouseOver()' onclick="changePage('login')" >登录</el-link></el-col>
                 <el-col :span="12"><el-link id='zhuce' onmouseover='onMouseOver()' onclick="changePage('register')" >注册</el-link></el-col>
@@ -20,16 +24,26 @@
       <el-row style="width: 100%;height: 70%;display: flex;align-items: center;justify-content: center;padding: 0px;">
         <el-form ref="form" :model="loginForm" label-width="20px" rules="rules"
           style="width: 85%;height: 80%;margin: 0;padding: 0px; ">
-          <el-form-item  prop="account">
-            <el-input v-model="loginForm.account" placeholder="User"></el-input>
+          <el-form-item  prop="username">
+            <!-- <el-input v-model="loginForm.username" placeholder="User"></el-input> -->
+            <input type="text" v-model="loginForm.username" placeholder="User"></input>
           </el-form-item>
-          <el-form-item  prop="password">
-            <el-input type="password" v-model="loginForm.password" placeholder="Password"></el-input>
+          
+          <el-form-item  prop="password1">
+            <!-- <el-input type="password" v-model="loginForm.password" placeholder="Password"></el-input> -->
+            <input type="password" v-model="loginForm.password1" placeholder="Password1"></input>
           </el-form-item>
-
+        <!-- <el-form-item prop="password2">
+          <input type="password2" v-model="loginForm.password2" placeholder="Password2"></input>
+        </el-form-item>
+        <el-form-item>
+          <input type="text" v-model="loginForm.email" placeholder="Password"></input>
+        </el-form-item> -->
         </el-form>
         <!-- <el-button class="btn" type="primary" v-if="isActive === 'login'" @click="$router.push('/')">登录</el-button> -->
-        <el-button class="b-btn" type="primary" v-if="isActive === 'login'" @click="handleLogin">登录</el-button>
+        <button class="b-btn" type="primary" v-if="isActive === 'login'" @click="handleLogin">登录
+       
+        </button>
         <el-button class="b-btn" type="primary" v-else @click="handleRegister">注册</el-button>
       </el-row>
     </div>
@@ -41,6 +55,7 @@
 import { loadFull } from "tsparticles"
 import { ref } from "vue";
 import axios from "axios";
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const form = ref();
 
@@ -55,13 +70,13 @@ function setActive(type) {
 const isLogin = ref(true)
 
 const loginForm = ref({
-  account: "a",
+  username: "a",
   password: "",
 });
 
 const handleLogin = async () => {
   try {
-    const res = await axios.post('http://127.0.0.1:8000/api/login', loginForm.value)
+    const res = await axios.post('http://127.0.0.1:8000/use_management/login/', loginForm.value)
     console.log(res.data)
     if (res.data.error_code === 0) {
       
@@ -75,8 +90,29 @@ const handleLogin = async () => {
   }
 
 }
+
+const handleRegister = async() => {
+  try {
+    const testform = {
+      username: "test_username",
+      password1: "test_password",
+      password2: "test_password",
+      email: "2240829627@qq.com"
+    };
+    const res = await axios.post('http://127.0.0.1:8000/user_management/register/', testform)
+    console.log(res.data)
+    if (res.data.error_code === 0) {
+      ElMessage.success("注册成功")
+    } else {
+      ElMessage.error(res.data.msg)
+    }
+}
+catch (error) {
+  console.log(error)
+}
+}
 //const rules = {
-//  account: [
+//  username: [
 //    { required: true, message: '请输入用户名', trigger: 'blur' },
 //    { min: 1, max: 10, message: '用户名必须是 5-10位 的字符', trigger: 'blur' }
 //  ],
@@ -97,7 +133,7 @@ const handleLogin = async () => {
 //    const tokenString = res.data.data
 //    let user = JSON.parse(decodeURIComponent(escape(window.atob(tokenString.split('.')[1]))))
 //    ElMessage.success("登录成功")
-//    userStore.setToken(tokenString, formModel.value.userAccountId, formModel.value.userPassword, user.post_id)
+//    userStore.setToken(tokenString, formModel.value.userusernameId, formModel.value.userPassword, user.post_id)
 //    router.push('/')
 //
 //    // try {
@@ -218,14 +254,14 @@ const particlesLoaded = async (container) => {
   opacity: 1;
 //  filter: blur(0.5px);
 
-  background-color: #0a9cdb;
-  background-color: #fff;
+
+background-color: #0c1622;
 
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  border-radius: 10px;
+  //border-radius: 10px;
   border: 2px solid transparent;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   padding: 0 0 0 0;
@@ -245,6 +281,7 @@ const particlesLoaded = async (container) => {
   border-bottom:2px solid ;
   text-align: center;
   height: 40px;
+  background: transparent;
   font-family: 'Courier New', Courier, monospace;
   &:active {
     border: none;
@@ -252,7 +289,7 @@ const particlesLoaded = async (container) => {
   }
 
   &:hover {
-    background-color: #fff;
+    background-color: transparent;
   }
 }
 
@@ -265,39 +302,145 @@ const particlesLoaded = async (container) => {
   margin-top: 16px;
   line-height: 40px;
   text-align: center;
-  color: #fff;
-  background-color: #0a9cdb;
+  color: #03e9f4;
+  background-color: #ccc;
   border-radius: 0px;
   border: 0;
   cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
-    background-color: #ccc;
-    color: #fff;
-    opacity: 0.8;
+    border-radius: 5px;
+			color: #fff;
+			background: #03e9f4;
+			box-shadow: 0 0 5px 0 #03e9f4,
+				0 0 25px 0 #03e9f4,
+				0 0 50px 0 #03e9f4,
+				0 0 100px 0 #03e9f4;
+			transition: all 1s linear;
   }
 
 }
 
 .el-form-item {
-  margin-top: 45px;
+  margin-top: 36px;
+  border-bottom:2px solid #fff; 
 }
+.el-form-item input {
+  width: 100%;
+  height: 34px;
+  line-height: 34px;
+  padding: 0 0px 0 0px;
+  font-size: 16px;
+  color: white;
+  border: 0;
+  background: transparent;
+  outline: none;
+  box-sizing: border-box;
+/*   &:focus {
+     border: 0;
+     background: transparent;
+     outline: none;
+   }
+  &:hover {
+    border: 0;
+    background: transparent;
+    outline: none;
+  }*/
+  &:-webkit-autofill {
+    box-shadow: 0 0 0px 1000px #0c1622 inset;
+    -webkit-text-fill-color: #fff;
+    border: none;
+    
+  } 
+ }
 
-.el-input {
+/*.el-input {
  width: 100%;
  height: 34px;
  line-height: 34px;
- padding: 0 10px;
+ padding: 0 0px;
  font-size: 16px;
- transition: all 0.3s ease;
- 
+ border: none;
+ background: transparent;
+ outline: none;
   &:focus {
     border-color: #0a9cdb;
     outline: none;
   }
 
+}*/
+
+.login-card>span {
+  position: absolute;
 }
 
+.login-card>span:nth-child(1) {
+  width: 100%;
+  height: 2px;
+  background: -webkit-linear-gradient(left, transparent, #03e9f4);
+  left: -100%;
+  top: 0px;
+  animation: line1 1s linear infinite;
+}
+
+@keyframes line1 {
+
+  50%,
+  100% {
+    left: 100%;
+  }
+}
+
+.login-card>span:nth-child(2) {
+  width: 2px;
+  height: 100%;
+  background: -webkit-linear-gradient(top, transparent, #03e9f4);
+  right: 0px;
+  top: -100%;
+  animation: line2 1s 0.25s linear infinite;
+}
+
+@keyframes line2 {
+
+  50%,
+  100% {
+    top: 100%;
+  }
+}
+
+.login-card>span:nth-child(3) {
+  width: 100%;
+  height: 2px;
+  background: -webkit-linear-gradient(left, #03e9f4, transparent);
+  left: 100%;
+  bottom: 0px;
+  animation: line3 1s 0.75s linear infinite;
+}
+
+@keyframes line3 {
+
+  50%,
+  100% {
+    left: -100%;
+  }
+}
+
+.login-card>span:nth-child(4) {
+  width: 2px;
+  height: 100%;
+  background: -webkit-linear-gradient(top, transparent, #03e9f4);
+  left: 0px;
+  top: 100%;
+  animation: line4 1s 1s linear infinite;
+}
+
+@keyframes line4 {
+
+  50%,
+  100% {
+    top: -100%;
+  }
+}
 
 </style>
