@@ -177,15 +177,15 @@ onMounted(async () => {
         stack: 'all', // 堆叠图的设置
         areaStyle: {
 
-          // opacity: 0.5 // 透明度
-          // color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
-          //   offset: 0,
-          //   color: 'rgba(255, 0.2)'
-          // }, {
-          //   offset: 1,
-          //   color: 'rgba(255, 0.2)'
-          // }]) // 渐变颜色 
-          color: 'red',
+          opacity: 0.5, // 透明度
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+            offset: 0,
+            color: 'rgba(255, 0.2)'
+          }, {
+            offset: 1,
+            color: 'rgba(255, 0.2)'
+          }]) // 渐变颜色 
+          
 
           // color: 'rgba(255, 0.2)' // 单一颜色
 
@@ -233,18 +233,18 @@ onMounted(async () => {
           borderColor: '#5793f3', // 手柄边框的颜色  
           borderWidth: 1, // 手柄边框的宽度   
         },
-        // sliderStyle: {  
-        //         backgroundColor: '#eceeef', // 滑块背景颜色  
-        //         borderColor: '#a7b7cb', // 滑块边框颜色  
-        //         fillerColor: '#d0d8e2', // 选中范围的填充颜色  
-        //         handleStyle: { // 滑块手柄的样式  
-        //             color: '#1E90FF', // 手柄颜色  
-        //             borderColor: '#1E90FF', // 手柄边框颜色  
-        //             borderWidth: 2, // 手柄边框宽度  
-        //             shadowBlur: 10, // 阴影的模糊大小  
-        //             shadowColor: 'rgba(0, 0, 0, 0.5)' // 阴影颜色  
-        //         }  
-        //     },  
+        sliderStyle: {  
+                backgroundColor: '#eceeef', // 滑块背景颜色  
+                borderColor: '#a7b7cb', // 滑块边框颜色  
+                fillerColor: '#d0d8e2', // 选中范围的填充颜色  
+                handleStyle: { // 滑块手柄的样式  
+                    color: '#1E90FF', // 手柄颜色  
+                    borderColor: '#1E90FF', // 手柄边框颜色  
+                    borderWidth: 2, // 手柄边框宽度  
+                    shadowBlur: 10, // 阴影的模糊大小  
+                    shadowColor: 'rgba(0, 0, 0, 0.5)' // 阴影颜色  
+                }  
+            },  
       },
       {
         type: 'inside', // 内置的缩放控制器  

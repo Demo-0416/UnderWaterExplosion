@@ -1,5 +1,10 @@
 from django.shortcuts import render, redirect
+<<<<<<< HEAD
 from django.http import HttpResponse, JsonResponse
+=======
+from django.views.decorators.csrf import csrf_exempt 
+from django.http import HttpResponse
+>>>>>>> 4b57c3c (接口跨域更改设置)
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -35,6 +40,7 @@ def user_logout(request):
 
 
 # 用户注册
+@csrf_exempt
 def user_register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)

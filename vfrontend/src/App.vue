@@ -7,10 +7,10 @@ import Login from './views/Login.vue';
 
 <template>
  <div class="laybox">
-   <!-- <router-view></router-view> -->
+   <router-view></router-view>
       <!-- <loadnewfile></loadnewfile> -->
        <!-- <list></List> -->
-         <login></Login>
+         <!-- <login></Login> -->
  </div>
 </template>
 
