@@ -5,12 +5,13 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .forms import UserLoginForm, UserRegisterForm, UserChangePasswordForm
+import json
 # Create your views here.
 # 用户登录
 @csrf_exempt
 def user_login(request):
     if request.method == 'POST':
-        user_login_form = UserLoginForm(request.POST)
+        user_login_form = UserLoginForm(json.loads(request.body))
         if user_login_form.is_valid():
             data = user_login_form.cleaned_data
             user = authenticate(username=data['username'], password=data['password'])
@@ -39,21 +40,9 @@ def user_logout(request):
 
 # 用户注册
 @csrf_exempt
-# def user_register(request):
-#     if request.method == 'POST':
-#         form = UserRegisterForm(request.POST)
-#         if form.is_valid():
-#             user = form.save()
-#             authenticate_user = authenticate(username=user.username, password=form.cleaned_data['password1'])
-#             login(request, authenticate_user)  # 登录用户
-#             # 可以重定向到首页或其他页面
-#             return redirect('/data_management/') # 定向待定
-#     else:
-#         form = UserRegisterForm()
-#     return render(request, 'register.html', {'form': form})
 def user_register(request):
     if request.method == 'POST':
-        form = UserRegisterForm(request.POST)
+        form = UserRegisterForm(json.loads(request.body))
         if form.is_valid():
             user_name = form.cleaned_data['username']
             user_email = form.cleaned_data['email']
@@ -94,7 +83,7 @@ def user_delete(request, id):
 def change_password(request):
     if request.method == 'POST':
         user = request.user
-        user_change_password_form = UserChangePasswordForm(request.POST)
+        user_change_password_form = UserChangePasswordForm(json.loads(request.body))
         if user_change_password_form.is_valid():
             old_password = user_change_password_form.cleaned_data['old_password']
             new_password = user_change_password_form.cleaned_data['new_password']
