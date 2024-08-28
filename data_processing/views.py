@@ -111,6 +111,9 @@ def extract_features_view(request):
 
             # 进行特征提取
             features = extract_features(preprocessed_data)
+
+            cache.delete('preprocessed_data')
+
             return JsonResponse({
                 'status': 'success',
                 'features': features
