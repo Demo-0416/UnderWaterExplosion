@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt 
@@ -43,6 +44,7 @@ def user_logout(request):
 def user_register(request):
     if request.method == 'POST':
         form = UserRegisterForm(json.loads(request.body))
+        
         if form.is_valid():
             user_name = form.cleaned_data['username']
             user_email = form.cleaned_data['email']

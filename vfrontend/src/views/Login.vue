@@ -76,11 +76,12 @@ const loginForm = ref({
 
 const handleLogin = async () => {
   try {
-    const res = await axios.post('http://127.0.0.1:8000/use_management/login/', loginForm.value)
+    // const res = await axios.post('http://127.0.0.1:8000/use_management/login/', loginForm.value)
+    const res = await axios.get('http://127.0.0.1:8000/data_management/stream_sensor_data')
     console.log(res.data)
     if (res.data.error_code === 0) {
       
-      ElMessage.success("登录成功")
+      ElMessage.success("成功")
     } else {
       ElMessage.error(res.data.msg)
     }
@@ -94,13 +95,14 @@ const handleLogin = async () => {
 const handleRegister = async() => {
   try {
     const testform = {
-      username: "test_username",
+      username: "test_username45",
       password1: "test_password",
       password2: "test_password",
       email: "2240829627@qq.com"
     };
-    // const res = await axios.post('http://127.0.0.1:8000/user_management/register/', testform)
-    const res = await axios.get('http://127.0.0.1:8000/data_management/stream_sensor_data')
+    const res = await axios.post('http://127.0.0.1:8000/user_management/register/', testform)
+    console.log(testform)
+   
     console.log(res.data)
     if (res.data.error_code === 0) {
       ElMessage.success("注册成功")
