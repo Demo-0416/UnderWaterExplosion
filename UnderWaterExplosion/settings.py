@@ -37,11 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'daphne', # 必须在channels的上面
+    'channels',
     "data_management.apps.DataManagementConfig",
     "data_processing.apps.DataProcessingConfig",
     "visualization.apps.VisualizationConfig",
     "workflow_management.apps.WorkflowManagementConfig",
     "user_management.apps.UserManagementConfig",
+  
 ]
 
 MIDDLEWARE = [

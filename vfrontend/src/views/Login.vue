@@ -65,7 +65,8 @@ import { ref } from "vue";
 import axios from "axios";
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { reactive } from "vue";
-
+// import router from "@/router";
+import { useRouter } from 'vue-router';
 const form = ref();
 
 // 控制当前激活的按钮  
@@ -89,17 +90,25 @@ const registerForm = reactive({
   password2: "",
   email: "",
 });
+
+const router = useRouter();
 const handleLogin = async () => {
   try {
-    const res = await axios.post('http://127.0.0.1:8000/user_management/login/', loginForm)
+    const res = await axios.post('http://127.0.0.1:8000/user_management/login/', loginForm, {
+      headers: {
+        'Content-Type': 'application/json'
+      }}
+    );
 
-    console.log(loginForm)
-    console.log(res.data)
+    console.log(loginForm);
+    console.log(res.data);
     if (res.data.code == 0) {
       
-      ElMessage.success("成功")
+      ElMessage({type: 'success', message: '登录成功'})
+      
     } else {
       ElMessage.error(res.data.state)
+      router.push('/')
     }
 
   } catch (error) {

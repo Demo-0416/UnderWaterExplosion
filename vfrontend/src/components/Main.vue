@@ -67,7 +67,7 @@ onMounted(() => {
   // console.log(props.select1Chart);
   // generateData();
   // fetchData();
- 
+  console.log(props.select1Charts);
 
 });
  // 监听 Acceleration_data 的变化

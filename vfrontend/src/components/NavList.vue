@@ -66,11 +66,11 @@ const checked3Charts =reactive([true,true,true,true,])
 const checked4Charts =reactive([true,true,true,true,])
 
 const handleOpen = (key, keyPath) => {
-  console.log(key, keyPath);
+  // console.log(key, keyPath);
 };
 
 const handleClose = (key, keyPath) => {
-  console.log(key, keyPath);
+  // console.log(key, keyPath);
 };
 const handleSubMenuCheck1 = () => {
   checked1Charts[0] = !dirchecked1.value;
