@@ -97,7 +97,7 @@ def change_password(request):
                     user.set_password(new_password)
                     user.save()
                     logout(request)
-                    return redirect('user_management:login')
+                    return JsonResponse({'code': '0', 'state': '密码已修改'})
             else:
                 return JsonResponse({'code': '3', 'state': '原密码错误'})
         else:
