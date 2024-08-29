@@ -27,8 +27,6 @@ def iir_filter(input_value, b, a, zi):
     """
     output_value, zi = signal.lfilter(b, a, [input_value], zi=zi)
     return output_value[0], zi
-
-
 def consume_sensor_data(request):
     if request.method == 'GET':
         try:
@@ -36,7 +34,8 @@ def consume_sensor_data(request):
             consumer = Consumer({
                 'bootstrap.servers': 'localhost:9092',
                 'group.id': 'sensor_data_group',
-                'auto.offset.reset': 'earliest'
+                'auto.offset.reset': 'earliest',
+                'enable.auto.commit': False  # 禁用自动提交偏移量
             })
 
             kafka_topics = [f'location_{i}_data_topic' for i in range(1, 26)]
@@ -48,7 +47,10 @@ def consume_sensor_data(request):
             records = fetch_data(consumer)
             cache.set('preprocessed_data', records, timeout=3600)
             print("Data fetched successfully.")
-            
+
+            # 手动提交偏移量
+            consumer.commit()
+
             return JsonResponse({
                 'status': 'success',
                 'data': records
@@ -75,16 +77,16 @@ def consume_sensor_data(request):
                 'message': f"Unexpected error: {str(e)}"
             }, status=500)
 
+        finally:
+            consumer.close()  # 确保消费者在完成后被正确关闭
+
     else:
         return JsonResponse({
             'status': 'error',
             'message': 'Method not allowed. Only GET requests are supported.'
         }, status=405)
-        # print("Generating plots...")
-        # plot_html = generate_plots(records)
-        # print("Plots generated successfully.")
-        
-        # return HttpResponse(plot_html)
+
+
 
 
 

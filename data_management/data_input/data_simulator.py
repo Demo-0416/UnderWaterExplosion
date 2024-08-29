@@ -80,7 +80,7 @@ class DataSimulator:
                     producer.flush()
                 # time.sleep(explosion_interval)
 
-        threading.Thread(target=stream_data).start()
+        stream_data()
 
     def save_sensor_data(self, positions, duration, filename, num_explosions):
         records = []

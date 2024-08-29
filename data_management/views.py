@@ -16,20 +16,47 @@ params_simulator = {
 simulator = DataSimulator(params_simulator)
 data_saver = DataSaver()
 
+stream_lock = threading.Lock()
+# 用于指示数据流线程是否正在运行
+is_streaming = False  
+
 def stream_sensor_data(request):
+    global is_streaming
+
     if request.method == 'GET':
+        # 尝试获取锁
+        if not stream_lock.acquire(blocking=False):  # 如果锁不可用，则返回错误信息
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Streaming is already in progress. Please wait until the current stream is finished.'
+            }, status=423)  # 423 Locked 状态码表示资源被锁定
+        
         try:
+            # 检查是否已经在流数据
+            if is_streaming:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Streaming is already in progress. Please wait until the current stream is finished.'
+                }, status=423)
+
+            # 设置为流数据状态
+            is_streaming = True
+
             positions = np.linspace(100, 1000, 25)  # 生成 25 个位置，每个位置的值是整数
             kafka_topics = [f'location_{i}_data_topic' for i in range(1, 26)]
             explosion_duration = 1  # 每次爆炸持续时间
             num_explosions = 5  # 爆炸次数
 
             # 启动数据流线程
-            threading.Thread(target=simulator.stream_sensor_data, args=(positions, explosion_duration, kafka_topics, num_explosions)).start()
+            threading.Thread(target=stream_data_with_lock, args=(positions, explosion_duration, kafka_topics, num_explosions)).start()
 
             return JsonResponse({'status': 'streaming started'}, status=200)
 
         except Exception as e:
+            # 释放锁并重置状态
+            is_streaming = False
+            stream_lock.release()
+
             return JsonResponse({
                 'status': 'error',
                 'message': f"Unexpected error: {str(e)}"
@@ -39,6 +66,15 @@ def stream_sensor_data(request):
         'status': 'error',
         'message': 'Method not allowed. Only GET requests are supported.'
     }, status=405)
+
+def stream_data_with_lock(positions, explosion_duration, kafka_topics, num_explosions):
+    global is_streaming
+    try:
+        simulator.stream_sensor_data(positions, explosion_duration, kafka_topics, num_explosions)
+    finally:
+        # 确保流数据线程结束时释放锁和重置状态
+        is_streaming = False
+        stream_lock.release()
 
 def save_sensor_data(request):
     if request.method == 'GET':
