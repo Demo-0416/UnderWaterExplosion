@@ -88,6 +88,3 @@ def save_to_db(request):
         'status': 'error',
         'message': 'Method not allowed. Only GET requests are supported.'
     }, status=405)
-
-def home(request):
-    return render(request, 'data_management/home.html')

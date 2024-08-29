@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Example</title>
+  </head>
+  <body>
+    <h1>WebSocket Sensor Data</h1>
+    <button id="startButton">Start Fetching Data</button>
+    <div id="output"></div>
+
+    <script>
+      const socket = new WebSocket("ws://localhost:8000/ws/sensor_data/");
+
+      socket.onopen = function (event) {
+        console.log("WebSocket connection is open.");
+        document.getElementById("output").innerHTML +=
+          "<p>WebSocket connection is open.</p>";
+      };
+
+      socket.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+        console.log("Received data:", data);
+        document.getElementById(
+          "output"
+        ).innerHTML += `<p>Received data: ${JSON.stringify(data)}</p>`;
+      };
+
+      socket.onclose = function (event) {
+        console.log("WebSocket connection is closed.");
+        document.getElementById("output").innerHTML +=
+          "<p>WebSocket connection is closed.</p>";
+      };
+
+      document
+        .getElementById("startButton")
+        .addEventListener("click", function () {
+          socket.send(JSON.stringify({ message: "Start fetching data" }));
+        });
+    </script>
+  </body>
+</html>
