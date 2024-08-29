@@ -10,6 +10,7 @@ from django.core.cache import cache
 # Global lists to store raw and filtered records
 raw_records = []
 filtered_records = []
+lock = threading.Lock()
 
 
 def iir_filter(input_value, b, a, zi):
@@ -29,13 +30,21 @@ def iir_filter(input_value, b, a, zi):
     return output_value[0], zi
 def consume_sensor_data(request):
     if request.method == 'GET':
+        lock_acquired = lock.acquire(blocking=False)
+        if not lock_acquired:
+            print("Lock not acquired, data fetching is in progress.")
+            return JsonResponse({
+                'status': 'info',
+                'message': '数据获取正在进行，请稍等。'
+            }, status=200)
+
         try:
-            print("Starting consumer setup...")
+            print("Lock acquired, starting consumer setup...")
             consumer = Consumer({
                 'bootstrap.servers': 'localhost:9092',
                 'group.id': 'sensor_data_group',
                 'auto.offset.reset': 'earliest',
-                'enable.auto.commit': False  # 禁用自动提交偏移量
+                'enable.auto.commit': False
             })
 
             kafka_topics = [f'location_{i}_data_topic' for i in range(1, 26)]
@@ -48,7 +57,6 @@ def consume_sensor_data(request):
             cache.set('preprocessed_data', records, timeout=3600)
             print("Data fetched successfully.")
 
-            # 手动提交偏移量
             consumer.commit()
 
             return JsonResponse({
@@ -78,18 +86,15 @@ def consume_sensor_data(request):
             }, status=500)
 
         finally:
-            consumer.close()  # 确保消费者在完成后被正确关闭
+            print("Releasing lock and closing consumer.")
+            consumer.close()
+            lock.release()
 
     else:
         return JsonResponse({
             'status': 'error',
-            'message': 'Method not allowed. Only GET requests are supported.'
+            'message': '不允许的请求方法。只支持 GET 请求。'
         }, status=405)
-
-
-
-
-
 
 def extract_features_view(request):
     if request.method == 'GET':
