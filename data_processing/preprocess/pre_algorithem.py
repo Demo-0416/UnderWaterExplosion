@@ -28,56 +28,58 @@ def iir_filter(input_value, b, a, zi):
     return output_value[0], zi
 
 
-def fetch_data(consumer):
-    b, a = signal.butter(4, 0.3)  # 4th order Butterworth filter, cutoff frequency 0.3
-    zi = signal.lfilter_zi(b, a) * 0  # Initialize filter state
-    
-    records = {
-        'Acceleration': [],
-        'Strain': [],
-        'Temperature': [],
-        'Pressure': []
-    }
-    raw_records = {
-        'Acceleration': [],
-        'Strain': [],
-        'Temperature': [],
-        'Pressure': []
-    }
-    filtered_records = {
-        'Acceleration': [],
-        'Strain': [],
-        'Temperature': [],
-        'Pressure': []
+def fetch_data(consumer, max_messages=50000):
+    # 初始化滤波器
+    b, a = signal.butter(4, 0.3)  # 4阶Butterworth滤波器，截止频率为0.3
+    zi_dict = {  # 使用字典来管理每种传感器的滤波器状态
+        'Acceleration': signal.lfilter_zi(b, a) * 0,
+        'Strain': signal.lfilter_zi(b, a) * 0,
+        'Temperature': signal.lfilter_zi(b, a) * 0,
+        'Pressure': signal.lfilter_zi(b, a) * 0
     }
 
+    # 初始化数据结构
+    records = {'Acceleration': [], 'Strain': [], 'Temperature': [], 'Pressure': []}
+    raw_records = {'Acceleration': [], 'Strain': [], 'Temperature': [], 'Pressure': []}
+    filtered_records = {'Acceleration': [], 'Strain': [], 'Temperature': [], 'Pressure': []}
+    
     message_count = 0
 
-    while message_count <5:
+    while message_count < max_messages:  # 确保循环终止条件明确
         msg = consumer.poll(1.0)
-        if msg is None:
-            print("OK")
-            message_count += 1
+        if msg is None:  # 没有接收到消息
+            print("Waiting for new messages...")
             continue
-        if msg.error():
+        if msg.error():  # 处理错误情况
             if msg.error().code() == KafkaError._PARTITION_EOF:
+                print("End of partition reached.")
                 continue
             else:
-                print(msg.error())
+                print(f"Error occurred: {msg.error()}")
                 break
+
+        # 处理接收到的消息
         record = json.loads(msg.value().decode('utf-8'))
         sensor_type = record.get('Type', None)
         value = record.get('Value', None)
         timestamp = record.get('Time', None)
+        
         if value is not None and sensor_type in records:
+            # 使用传感器类型特定的滤波器状态
+            zi = zi_dict[sensor_type]
             filtered_value, zi = signal.lfilter(b, a, [value], zi=zi)
+            zi_dict[sensor_type] = zi  # 更新滤波器状态
+
             raw_records[sensor_type].append((timestamp, value))
             filtered_records[sensor_type].append((timestamp, filtered_value[0]))
             records[sensor_type].append(record)
             print(f"Fetched and processed record: {record}")
-    # print(records)
+
+        # 增加消息计数器
+        message_count += 1
+
+    print("Reached maximum message count or encountered an error, stopping consumption.")
     processed_records = process_records(records)
-    
     return processed_records
 
 def generate_plots(records):
