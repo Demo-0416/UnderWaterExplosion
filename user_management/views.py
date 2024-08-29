@@ -18,7 +18,7 @@ def user_login(request):
             user = authenticate(username=data['username'], password=data['password'])
             if user:
                 login(request, user)
-                return redirect('/data_management/')  # 登录后定向待定
+                return JsonResponse({'code': '0', 'state': '登录成功'})
             else:
                 return JsonResponse({'code': '1', 'state': '账号或密码有误'})
         else:
@@ -28,7 +28,7 @@ def user_login(request):
         context = {'form': user_login_form}
         return render(request, 'login.html', context)
     else:
-        return JsonResponse({'code': '2', 'state': '请使用GET或POST请求数据'})
+        return JsonResponse({'code': '3', 'state': '请使用GET或POST请求数据'})
 
 
 # 用户登出
