@@ -7,10 +7,7 @@
       <span/>
       <span/>
       <span/>
-      <!-- <el-row style="width: 100%;margin: 0;padding: 0px;">
-                <el-col :span="12"><el-link id='denglu' onmouseover='onMouseOver()' onclick="changePage('login')" >登录</el-link></el-col>
-                <el-col :span="12"><el-link id='zhuce' onmouseover='onMouseOver()' onclick="changePage('register')" >注册</el-link></el-col>
-            </el-row>   -->
+   
 
       <el-row style="margin-top: 5px;">
         <el-col :span="9" :offset="2"><el-button class="a-btn"
@@ -21,25 +18,36 @@
             @click="setActive('register')">注册</el-button></el-col>
       </el-row>
 
-      <el-row style="width: 100%;height: 70%;display: flex;align-items: center;justify-content: center;padding: 0px;">
-        <el-form ref="form" :model="loginForm" label-width="20px" rules="rules"
+      <el-row style="width: 100%;height: 80%;display: flex;align-items: center;justify-content: center;padding: 0px;">
+        <el-form class="login-form" ref="form" :model="loginForm"  rules="rules" v-if="isActive === 'login'"
           style="width: 85%;height: 80%;margin: 0;padding: 0px; ">
-          <el-form-item  prop="username">
+          <el-form-item  >
             <!-- <el-input v-model="loginForm.username" placeholder="User"></el-input> -->
             <input type="text" v-model="loginForm.username" placeholder="User"></input>
           </el-form-item>
           
-          <el-form-item  prop="password1">
+          <el-form-item  >
             <!-- <el-input type="password" v-model="loginForm.password" placeholder="Password"></el-input> -->
-            <input type="password" v-model="loginForm.password1" placeholder="Password1"></input>
+            <input type="password" v-model="loginForm.password" placeholder="Password"></input>
           </el-form-item>
-        <!-- <el-form-item prop="password2">
-          <input type="password2" v-model="loginForm.password2" placeholder="Password2"></input>
-        </el-form-item>
-        <el-form-item>
-          <input type="text" v-model="loginForm.email" placeholder="Password"></input>
-        </el-form-item> -->
+      
         </el-form>
+        <el-form class="register-form" ref="form" :model="registerForm" :rules="rules" v-else
+  style="width: 85%;height: 80%;margin: 0;padding: 0px; ">
+  <el-form-item >
+    <input type="text" v-model="registerForm.username" placeholder="User"/>
+  </el-form-item>
+  
+  <el-form-item >
+    <input type="password" v-model="registerForm.password1" placeholder="Password1"/>
+  </el-form-item>
+  <el-form-item >
+    <input type="password" v-model="registerForm.password2" placeholder="Password2">
+  </el-form-item>
+  <el-form-item >
+    <input type="text" v-model="registerForm.email" placeholder="Email">
+  </el-form-item>
+</el-form>
         <!-- <el-button class="btn" type="primary" v-if="isActive === 'login'" @click="$router.push('/')">登录</el-button> -->
         <button class="b-btn" type="primary" v-if="isActive === 'login'" @click="handleLogin">登录
        
@@ -56,6 +64,7 @@ import { loadFull } from "tsparticles"
 import { ref } from "vue";
 import axios from "axios";
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { reactive } from "vue";
 
 const form = ref();
 
@@ -69,21 +78,28 @@ function setActive(type) {
 
 const isLogin = ref(true)
 
-const loginForm = ref({
-  username: "a",
+const loginForm = reactive({
+  username: "",
   password: "",
 });
 
+const registerForm = reactive({
+  username: "d",
+  password1: "",
+  password2: "",
+  email: "",
+});
 const handleLogin = async () => {
   try {
-    // const res = await axios.post('http://127.0.0.1:8000/use_management/login/', loginForm.value)
-    const res = await axios.get('http://127.0.0.1:8000/data_management/stream_sensor_data')
+    const res = await axios.post('http://127.0.0.1:8000/user_management/login/', loginForm)
+
+    console.log(loginForm)
     console.log(res.data)
-    if (res.data.error_code === 0) {
+    if (res.data.code == 0) {
       
       ElMessage.success("成功")
     } else {
-      ElMessage.error(res.data.msg)
+      ElMessage.error(res.data.state)
     }
 
   } catch (error) {
@@ -94,20 +110,20 @@ const handleLogin = async () => {
 
 const handleRegister = async() => {
   try {
-    const testform = {
-      username: "test_username45",
-      password1: "test_password",
-      password2: "test_password",
-      email: "2240829627@qq.com"
-    };
-    const res = await axios.post('http://127.0.0.1:8000/user_management/register/', testform)
-    console.log(testform)
-   
-    console.log(res.data)
-    if (res.data.error_code === 0) {
+    // const testform = {
+    //   username: "test_username45",
+    //   password1: "test_password",
+    //   password2: "test_password",
+    //   email: "2240829627@qq.com"
+    // };
+    const res = await axios.post('http://127.0.0.1:8000/user_management/register/', registerForm)
+    console.log(registerForm)
+   console.log(res.data)
+ 
+    if (res.data.code == 0) {
       ElMessage.success("注册成功")
     } else {
-      ElMessage.error(res.data.msg)
+      ElMessage.error(res.data.state)
     }
 }
 catch (error) {
@@ -252,8 +268,8 @@ const particlesLoaded = async (container) => {
 }
 
 .login-card {
-  width: 380px;
-  height: 285px;
+  width: 25%;
+  height: 45%;
   opacity: 1;
 //  filter: blur(0.5px);
 
@@ -324,19 +340,33 @@ background-color: #0c1622;
   }
 
 }
+.el-form {
 
-.el-form-item {
-  margin-top: 36px;
+  /*display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;*/
+  
+}
+.login-form .el-form-item {
+  
+  margin-top: 18%;
   border-bottom:2px solid #fff; 
 }
-.el-form-item input {
+
+.register-form .el-form-item {
+  margin-top: 3.5%;
+  border-bottom:2px solid #fff; 
+}
+ .el-form-item input {
   width: 100%;
   height: 34px;
   line-height: 34px;
   padding: 0 0px 0 0px;
   font-size: 16px;
   color: white;
-  border: 0;
+  border: none;
+
   background: transparent;
   outline: none;
   box-sizing: border-box;
@@ -384,7 +414,7 @@ background-color: #0c1622;
   background: -webkit-linear-gradient(left, transparent, #03e9f4);
   left: -100%;
   top: 0px;
-  animation: line1 1s linear infinite;
+  animation: line1 1s  linear infinite;
 }
 
 @keyframes line1 {
@@ -401,7 +431,7 @@ background-color: #0c1622;
   background: -webkit-linear-gradient(top, transparent, #03e9f4);
   right: 0px;
   top: -100%;
-  animation: line2 1s 0.25s linear infinite;
+  animation: line2 1s 0.15s linear infinite;
 }
 
 @keyframes line2 {
@@ -418,7 +448,7 @@ background-color: #0c1622;
   background: -webkit-linear-gradient(left, #03e9f4, transparent);
   left: 100%;
   bottom: 0px;
-  animation: line3 1s 0.75s linear infinite;
+  animation: line3 1s 0.3s linear infinite;
 }
 
 @keyframes line3 {
@@ -435,7 +465,7 @@ background-color: #0c1622;
   background: -webkit-linear-gradient(top, transparent, #03e9f4);
   left: 0px;
   top: 100%;
-  animation: line4 1s 1s linear infinite;
+  animation: line4 1s 0.5s linear infinite;
 }
 
 @keyframes line4 {

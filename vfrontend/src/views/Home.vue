@@ -1,5 +1,5 @@
 <template>
-  <div class="common-layout" :style="themeStyles">
+  <!-- <div class="common-layout" :style="themeStyles"> -->
     <el-container>
       <el-header >
         <el-row style="background-color: #c8e0fa;">
@@ -37,7 +37,7 @@
         </el-main>
       </el-container>
     </el-container>
-  </div>
+  <!-- </div> -->
 </template>
 <script setup>
 import NavList from '@/components/NavList.vue';
@@ -90,14 +90,13 @@ const active = ref(1);
 <style scoped>
 
 
-.common-layout {
-  height: 100%;
-  overflow: hidden;
-}
+
 
 .el-container {
   height: 100%;
   direction: vertical;
+  overflow-y: auto;
+  overflow: hidden;
 }
 
 header {
@@ -115,8 +114,9 @@ aside {
 
 main {
   display: block;
+  overflow-y: auto;
   padding: 0 0 0 1px;
-
+  
 }
 
 
