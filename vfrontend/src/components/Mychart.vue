@@ -33,6 +33,13 @@
       chartInstance.resize();
     });
   });
+ 
+// 监听 chartOptions 的变化
+watch(() => props.chartOptions, (newOptions) => {
+  if (chartInstance) {
+    chartInstance.setOption(newOptions);
+  }
+}, { deep: true });
   </script>
   
   <style scoped>
