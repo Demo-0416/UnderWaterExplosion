@@ -133,9 +133,8 @@ def save_to_db(request):
 def get_ori_data(request):
     if request.method == "GET":
         try:
-            request_body = json.loads(request.body)
-            year = request_body['Year']
-            exp_name = request_body['Exp_Name']
+            year = request.GET['Year']
+            exp_name = request.GET['Exp_Name']
             data = ori_data_get(year, exp_name)
             return JsonResponse({'code': '0', 'data': data})
         except InfluxDBClientError as e:

@@ -2,10 +2,10 @@ from influxdb_client import InfluxDBClient
 
 
 # 参数待填
-token = ""
-org = ""
+token = "LlbL-XmH8-GYoYyF2MLE5AV5OyoMUAMDyNPgeeskaJSbUBR20Iv7cAM7-XYnLrFTKiif-tv7ZCQQ05qEaLIyqw=="
+org = "shiki_group"
 url = "http://localhost:8086"
-bucket = ''
+bucket = 'test1'
 
 
 # bucket代填
