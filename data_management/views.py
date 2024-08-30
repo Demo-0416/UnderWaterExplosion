@@ -4,6 +4,9 @@ import numpy as np
 import threading
 from .data_input.data_simulator import DataSimulator
 from .data_input.file_uploader import DataSaver
+from influxdb.exceptions import InfluxDBClientError
+import json
+from .data_get.get_data_from_influxdb import ori_data_get
 
 # 参数配置
 params_simulator = {
@@ -124,3 +127,28 @@ def save_to_db(request):
         'status': 'error',
         'message': 'Method not allowed. Only GET requests are supported.'
     }, status=405)
+
+
+# 获取一次实验的全部数据
+def get_ori_data(request):
+    if request.method == "GET":
+        try:
+            request_body = json.loads(request.body)
+            year = request_body['Year']
+            exp_name = request_body['Exp_Name']
+            data = ori_data_get(year, exp_name)
+            return JsonResponse({'code': '0', 'data': data})
+        except InfluxDBClientError as e:
+            print(f"InfluxDBClient error: {str(e)}")
+            return JsonResponse({
+                'code': '1',
+                'message': f"Unexpected error: {str(e)}"
+            })
+        except Exception as e:
+            print(f"Unexpected error: {str(e)}")
+            return JsonResponse({
+                'code': '2',
+                'message': f"Unexpected error: {str(e)}"
+            })
+    else:
+        return JsonResponse({'code': '3', 'message': '不允许的请求方法。只支持 GET 请求。'})
