@@ -133,8 +133,16 @@ def save_to_db(request):
 def get_ori_data(request):
     if request.method == "GET":
         try:
-            year = request.GET['Year']
-            exp_name = request.GET['Exp_Name']
+            # request_body = json.loads(request.body)
+            # year = request_body['Year']
+            # exp_name = request_body['Exp_Name']
+            year = request.GET.get("Year")
+            exp_name = request.GET.get("Exp_Name")
+            
+            if year is None:
+                return JsonResponse({'code': '4', 'message': 'Year 参数缺失或无效。'})
+            if exp_name is None:
+                return JsonResponse({'code': '4', 'message': 'Exp_Name 参数缺失或无效。'})
             data = ori_data_get(year, exp_name)
             return JsonResponse({'code': '0', 'data': data})
         except InfluxDBClientError as e:
@@ -142,6 +150,12 @@ def get_ori_data(request):
             return JsonResponse({
                 'code': '1',
                 'message': f"Unexpected error: {str(e)}"
+            })
+        except json.JSONDecodeError as e:
+            print(f"JSONDecodeError: {str(e)}")
+            return JsonResponse({
+                'code': '6',
+                'message': f"JSONDecodeError: {str(e)}"
             })
         except Exception as e:
             print(f"Unexpected error: {str(e)}")

@@ -105,10 +105,11 @@ const handleLogin = async () => {
     if (res.data.code == 0) {
       
       ElMessage({type: 'success', message: '登录成功'})
+      router.push('/')
       
     } else {
       ElMessage.error(res.data.state)
-      router.push('/')
+      
     }
 
   } catch (error) {
@@ -234,9 +235,9 @@ const data = ref({
       number: {
         density: {
           enable: true,
-          value_area: 800,
+          value_area: 1000,
         },
-        value: 60,
+        value: 100,
       },
       opacity: {
         value: 0.95,

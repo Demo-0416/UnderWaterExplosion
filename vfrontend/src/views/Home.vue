@@ -4,7 +4,7 @@
       <el-header >
         <el-row style="background-color: #c8e0fa;">
           <el-col :span="6" :offset="9"
-            style="display: flex;text-align: center;justify-content: center;align-items: center;font-size: 16px;font-weight: bold;color: #303133;">数据分析系统</el-col>
+            style="display: flex;text-align: center;justify-content: center;align-items: center;font-size: 18px;font-weight: bold;color: #303133;letter-spacing: 10px;">数据分析系统</el-col>
           <el-col :span="2" :offset="4" style="display: flex;align-items: center;font-size: 14px;">欢迎您，{{name}}</el-col>
           <el-col :span="1" :offset="2"><el-avatar :src="imgsrc" style="width: 48; margin-top: 2px;"
               :fit="fit" /></el-col>
@@ -12,10 +12,13 @@
         </el-row>
         
          <el-row style="margin-left: 6px;margin-top: 10px;margin-bottom: 10px;margin-right: 6px;">
-           <el-col :span="4" ><el-select v-model="value" >
+           <el-col :span="4" >
+            <!-- <el-select v-model="value" >
             <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value"
               :disabled="item.disabled" />
-          </el-select></el-col>
+            </el-select> -->
+            <el-cascader style="width: 100%;" v-model="value" :options="options" @change="handleChange" />
+        </el-col>
            <el-col :span="20" > <el-steps  style="height:6px" :active="active" finish-status="success" simple>
             <el-step title="原始数据" :status="active === 1 ? 'success' : 'process'" @click="handleStepClick(1)" />
             <el-step title="预处理" :status="active === 2 ? 'success' : 'process'" @click="handleStepClick(2)" />
@@ -57,9 +60,12 @@ const updateSelect1Charts = (checked1Charts) => {
 
 }
 
-const value = ref('option1')
+const value = ref(['option1', '试验2']);
 const options = [
   {
+    value: 'option1',
+    label: '2024',
+    children :[{
     value: '试验1',
     label: '试验1',
   },
@@ -78,6 +84,79 @@ const options = [
   {
     value: '试验5',
     label: '试验5',
+  },]
+  },
+  {
+    value: 'option2',
+    label: '2023',
+    children :[{
+    value: '试验1',
+    label: '试验1',
+  },
+  {
+    value: '试验2',
+    label: '试验2',
+  },
+  {
+    value: '试验3',
+    label: '试验3',
+  },
+  {
+    value: '试验4',
+    label: '试验4',
+  },
+  {
+    value: '试验5',
+    label: '试验5',
+  },]
+  },
+  {
+    value: 'option3',
+    label: '2022',
+    children :[{
+    value: '试验1',
+    label: '试验1',
+  },
+  {
+    value: '试验2',
+    label: '试验2',
+  },
+  {
+    value: '试验3',
+    label: '试验3',
+  },
+  {
+    value: '试验4',
+    label: '试验4',
+  },
+  {
+    value: '试验5',
+    label: '试验5',
+  },]
+  },
+  {
+    value: 'option4',
+    label: '2021',
+    children :[{
+    value: '试验1',
+    label: '试验1',
+  },
+  {
+    value: '试验2',
+    label: '试验2',
+  },
+  {
+    value: '试验3',
+    label: '试验3',
+  },
+  {
+    value: '试验4',
+    label: '试验4',
+  },
+  {
+    value: '试验5',
+    label: '试验5',
+  },]
   },
 ]
 const active = ref(1);

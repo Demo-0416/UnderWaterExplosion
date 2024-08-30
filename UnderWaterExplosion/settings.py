@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'daphne', # 必须在channels的上面
+    'daphne',
     'channels',
     "data_management.apps.DataManagementConfig",
     "data_processing.apps.DataProcessingConfig",
