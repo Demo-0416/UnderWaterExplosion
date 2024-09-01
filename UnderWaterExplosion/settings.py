@@ -36,8 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'daphne',
+    'django.contrib.staticfiles',
     'channels',
     "data_management.apps.DataManagementConfig",
     "data_processing.apps.DataProcessingConfig",
@@ -79,6 +79,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'UnderWaterExplosion.wsgi.application'
+ASGI_APPLICATION = 'UnderWaterExplosion.asgi.application'
 
 
 # Database
