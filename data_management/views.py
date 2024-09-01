@@ -136,8 +136,8 @@ def get_ori_data(request):
             # request_body = json.loads(request.body)
             # year = request_body['Year']
             # exp_name = request_body['Exp_Name']
-            year = request.GET.get("Year")
-            exp_name = request.GET.get("Exp_Name")
+            year = request.GET["Year"]
+            exp_name = request.GET["Exp_Name"]
             
             if year is None:
                 return JsonResponse({'code': '4', 'message': 'Year 参数缺失或无效。'})
