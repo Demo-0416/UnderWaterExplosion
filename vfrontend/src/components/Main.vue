@@ -150,10 +150,10 @@ const fetchData = async () => {
       Exp_Name: 'test1',
     }
     console.log(test_param);
-    // const response = await axios.get('http://127.0.0.1:8000/data_management/get_ori_data/',{
-    //   params: test_param
-    // });
-    const response = await axios.get('http://127.0.0.1:8000/data_process/consume_sensor_data')
+    const response = await axios.get('http://127.0.0.1:8000/data_management/get_test_data/',{
+      params: test_param
+    });
+    // const response = await axios.get('http://127.0.0.1:8000/data_process/consume_sensor_data')
     console.log(response.data);
     Acceleration_data.value = response.data.data.Acceleration;
     Temperature_data.value = response.data.data.Temperature;

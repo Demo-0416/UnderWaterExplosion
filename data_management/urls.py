@@ -7,4 +7,5 @@ urlpatterns = [
     path('save_sensor_data/',views.save_sensor_data,name='save_sensor_data'), #保存模拟数据为csv文件
     path('save_to_db/',views.save_to_db,name='save_to_db'), #读取csv文件存入数据库
     path('get_ori_data/',views.get_ori_data,name='get_ori_data'),
+    path('get_test_data/', views.get_test_data, name='get_test_data'),
 ]
