@@ -7,6 +7,8 @@ from .data_input.file_uploader import DataSaver
 from influxdb.exceptions import InfluxDBClientError
 import json
 from .data_get.get_data_from_influxdb import ori_data_get
+from .data_input.save_data_to_influxdb import ori_data_save
+
 from django.views.decorators.http import require_http_methods
 # 参数配置
 params_simulator = {
@@ -165,22 +167,3 @@ def get_ori_data(request):
             })
     else:
         return JsonResponse({'code': '3', 'message': '不允许的请求方法。只支持 GET 请求。'})
-    
-@require_http_methods(["GET"])
-def get_test_data(request):
-    try:
-        year = request.GET.get("Year")
-        exp_name = request.GET.get("Exp_Name")
-        
-        if year is None:
-            return JsonResponse({'code': '4', 'message': 'Year 参数缺失或无效。'})
-        if exp_name is None:
-            return JsonResponse({'code': '4', 'message': 'Exp_Name 参数缺失或无效。'})
-        return JsonResponse({'code': '5', 'message': 'Year 和 Exp_Name 参数都存在。'})
-    except Exception as e:
-        print(f"Unexpected error: {str(e)}")
-        return JsonResponse({
-            'code': '2',
-            'message': f"Unexpected error: {str(e)}"
-        })
-     

@@ -1,11 +1,7 @@
 from influxdb_client import InfluxDBClient
+from data_management.setting import settings
 
 
-# 参数待填
-token = "LlbL-XmH8-GYoYyF2MLE5AV5OyoMUAMDyNPgeeskaJSbUBR20Iv7cAM7-XYnLrFTKiif-tv7ZCQQ05qEaLIyqw=="
-org = "shiki_group"
-url = "http://localhost:8086"
-bucket = 'test1'
 
 
 # bucket代填
@@ -63,13 +59,6 @@ bucket = 'test1'
 #         member_list = select_type_data(measurement, start_time)
 #         all_data_list.extend(member_list)
 #     return all_data_list
-
-settings = {
-    'token': token,
-    'org': org,
-    'url': url,
-    'bucket': bucket
-}
 
 
 def ori_data_get(year, exp_name):
