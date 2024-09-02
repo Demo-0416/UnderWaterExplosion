@@ -3,21 +3,22 @@
 import loadnewfile from './components/loadnewfile.vue';
 import List from './views/List.vue';
 import Login from './views/Login.vue';
+import User from './components/userInfo.vue'
 </script>
 
 <template>
- <div class="laybox">
-   <router-view></router-view>
-      <!-- <loadnewfile></loadnewfile> -->
-       <!-- <list></List> -->
-         <!-- <login></Login> -->
- </div>
+  <div class="laybox">
+    <User></User>
+    <!-- <router-view></router-view> -->
+    <!-- <loadnewfile></loadnewfile> -->
+    <!-- <list></List> -->
+    <!-- <login></Login> -->
+  </div>
 </template>
 
 
 
 <style scoped>
-
 .laybox {
   position: absolute;
   top: 0;
@@ -25,6 +26,4 @@ import Login from './views/Login.vue';
   right: 0;
   bottom: 0;
 }
-
-
 </style>
