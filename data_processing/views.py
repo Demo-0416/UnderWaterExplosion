@@ -1,17 +1,17 @@
 import threading
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from scipy import signal
 from confluent_kafka import Consumer, KafkaException
 import json
-from data_processing.preprocess.pre_algorithem import fetch_data,generate_plots
+from data_processing.preprocess.pre_algorithem import fetch_data
 from data_processing.feature.feature_extraction import extract_features
 from django.core.cache import cache
 
 # Global lists to store raw and filtered records
 raw_records = []
 filtered_records = []
-lock = threading.Lock()
-
+lock = threading.Lock()  # 用于consume_sensor_data的锁
+feature_lock = threading.Lock()  # 用于extract_features_view的锁
 
 def iir_filter(input_value, b, a, zi):
     """
@@ -28,6 +28,7 @@ def iir_filter(input_value, b, a, zi):
     """
     output_value, zi = signal.lfilter(b, a, [input_value], zi=zi)
     return output_value[0], zi
+
 def consume_sensor_data(request):
     if request.method == 'GET':
         lock_acquired = lock.acquire(blocking=False)
@@ -98,17 +99,15 @@ def consume_sensor_data(request):
 
 def extract_features_view(request):
     if request.method == 'GET':
-        try:
-            # consumer = Consumer({
-            #     'bootstrap.servers': 'localhost:9092',
-            #     'group.id': 'sensor_data_group',
-            #     'auto.offset.reset': 'earliest'
-            # })
-            # kafka_topics = [f'location_{i}_data_topic' for i in range(1, 26)]
-            # consumer.subscribe(kafka_topics)
+        feature_lock_acquired = feature_lock.acquire(blocking=False)
+        if not feature_lock_acquired:
+            print("Lock not acquired, feature extraction is in progress.")
+            return JsonResponse({
+                'status': 'info',
+                'message': '特征提取正在进行，请稍等。'
+            }, status=200)
 
-            # records = fetch_data(consumer)
-            # features = extract_features(records)
+        try:
             preprocessed_data = cache.get('preprocessed_data')
             if not preprocessed_data:
                 return JsonResponse({
@@ -131,6 +130,10 @@ def extract_features_view(request):
                 'status': 'error',
                 'message': str(e)
             }, status=500)
+
+        finally:
+            print("Releasing feature extraction lock.")
+            feature_lock.release()
 
     else:
         return JsonResponse({
