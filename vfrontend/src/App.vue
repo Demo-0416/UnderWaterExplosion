@@ -3,14 +3,15 @@
 import loadnewfile from './components/loadnewfile.vue';
 import List from './views/List.vue';
 import Login from './views/Login.vue';
+import Main from './components/Main.vue';
 import User from './components/userInfo.vue'
 import Boat from './components/three.vue'
 </script>
 
 <template>
   <div class="laybox">
-    <Boat></Boat>
-    <!-- <User></User> -->
+    <Main></Main>
+    <User></User>
     <!-- <router-view></router-view> -->
     <!-- <loadnewfile></loadnewfile> -->
     <!-- <list></List> -->

@@ -10,3 +10,5 @@ settings = {
     'url': url,
     'bucket': bucket
 }
+
+csv_file_path = "D:/xiaoxueqi/formal/project/UnderWaterExplosion/"
