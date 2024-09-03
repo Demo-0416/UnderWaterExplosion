@@ -7,9 +7,11 @@ from .data_input.file_uploader import DataSaver
 from influxdb.exceptions import InfluxDBClientError
 import json
 from .data_get.get_data_from_influxdb import ori_data_get
-from .data_input.save_data_to_influxdb import ori_data_save
 
 from django.views.decorators.http import require_http_methods
+
+from .models import History
+
 # 参数配置
 params_simulator = {
     'P0': 1000, 'alpha': 0.1, 'nu': 0.05, 'omega': 2 * np.pi * 10, 'beta': 1,
@@ -84,9 +86,11 @@ def stream_data_with_lock(positions, explosion_duration, kafka_topics, num_explo
 def save_sensor_data(request):
     if request.method == 'GET':
         try:
+            year = request.GET['Year']
+            exp_name = request.GET['Exp_Name']
             positions = np.linspace(100, 1000, 25)  # 生成 25 个位置，每个位置的值是整数
             duration = 1  # 持续时间 1 秒
-            filename = "sensor_data.csv"
+            filename = year + exp_name + "sensor_data.csv"
             num_explosions = 5  # 爆炸次数
 
             # 调用 save_sensor_data 方法保存数据到 CSV 文件
@@ -105,17 +109,18 @@ def save_sensor_data(request):
         'message': 'Method not allowed. Only GET requests are supported.'
     }, status=405)
 
+
 def save_to_db(request):
     if request.method == 'GET':
         try:
-            csv_file_path = 'E:/2024XXQ/UnderWaterExplosion/SensorData.csv'
-            influxdb_url = 'http://localhost:8086'
-            token = 'DugaItJRzzLbbNgUrEuoWxv84iIE8LS68eNUhuXgRKrzabA62vIBfqn9H2LhIyACArjqEKG1t7b2CXY5gyDP7A=='
-            org = 'Data'
-            bucket = 'Csv'
-
+            year = request.GET['Year']
+            exp_name = request.GET['Exp_Name']
+            if year is None:
+                return JsonResponse({'status': 'error', 'message': 'Year is required'}, status=400)
+            if exp_name is None:
+                return JsonResponse({'status': 'error', 'message': 'Exp_Name is required'}, status=400)
             # 调用方法将数据保存到 InfluxDB
-            data_saver.read_csv_and_write_to_influxdb(csv_file_path, influxdb_url, token, org, bucket)
+            data_saver.read_csv_and_write_to_influxdb(year, exp_name)
 
             return JsonResponse({'status': 'save to database'}, status=200)
 
@@ -135,9 +140,6 @@ def save_to_db(request):
 def get_ori_data(request):
     if request.method == "GET":
         try:
-            # request_body = json.loads(request.body)
-            # year = request_body['Year']
-            # exp_name = request_body['Exp_Name']
             year = request.GET["Year"]
             exp_name = request.GET["Exp_Name"]
             
@@ -188,3 +190,19 @@ def get_test_data(request):
                 'code': '2',
                 'message': f"Unexpected error: {str(e)}"
             })
+
+
+# 返回历史实验的标记
+def get_history(request):
+    if request.method == "GET":
+        try:
+            history_list = History.objects.all()
+            print(history_list)
+            json_list = json.loads(json.dumps([{
+                'year': item.save_time,
+                'exp_name': item.exp_name,
+            } for item in history_list]))
+
+            return JsonResponse({'code': '0', 'data': json_list})
+        except Exception as e:
+            return JsonResponse({'code': '1', 'message': str(e)})
