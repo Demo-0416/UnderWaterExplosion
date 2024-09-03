@@ -4,11 +4,13 @@ import loadnewfile from './components/loadnewfile.vue';
 import List from './views/List.vue';
 import Login from './views/Login.vue';
 import User from './components/userInfo.vue'
+import Boat from './components/three.vue'
 </script>
 
 <template>
   <div class="laybox">
-    <User></User>
+    <Boat></Boat>
+    <!-- <User></User> -->
     <!-- <router-view></router-view> -->
     <!-- <loadnewfile></loadnewfile> -->
     <!-- <list></List> -->

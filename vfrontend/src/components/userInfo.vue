@@ -12,7 +12,7 @@
         <img :src="userInfo.avatar" alt="avatar" class="avatar" />
       </div>
       <div class="info">
-        <p>用户名: {{ userInfo.username }}</p>
+        用户名: {{ userInfo.username }}
       </div>
       <div class="operation">
         <div @click="changePassword">修改信息</div>
@@ -34,8 +34,8 @@
             </el-col>
             <el-col :span="8">
               <el-form-item label="实验日期">
-                <el-date-picker v-model="filters.dateRange" type="daterange" range-separator="至"
-                  start-placeholder="开始日期" end-placeholder="结束日期" format="YYYY-MM-DD" />
+                <el-date-picker v-model="filters.dateRange" type="daterange" range-separator="至" start-placeholder="开始"
+                  end-placeholder="结束" format="YYYY-MM-DD" />
               </el-form-item>
             </el-col>
             <el-col :span="8">
@@ -51,12 +51,15 @@
       <!-- 历史实验数据时间轴 -->
       <el-card>
         <h3>历史实验数据</h3>
-        <el-table :data="filteredData" style="width: 100%">
-          <el-table-column prop="name" label="实验名称" width="200"></el-table-column>
-          <el-table-column prop="progress" label="实验进度" width="180"
-            :cell-style="({ row }) => getCellStyle(row.progress)"></el-table-column>
-          <el-table-column prop="time" label="时间" width="180"></el-table-column>
-        </el-table>
+        <el-row :gutter="20" class="experiment-list">
+          <el-col :span="24" v-for="item in filteredData" :key="item.id">
+            <el-card :style="getCardStyle(item.progress)">
+              <h3>{{ item.name }}</h3>
+              <p><strong>进度:</strong> {{ item.progress }}</p>
+              <p><strong>时间:</strong> {{ item.time }}</p>
+            </el-card>
+          </el-col>
+        </el-row>
       </el-card>
     </div>
   </div>
@@ -115,16 +118,17 @@ export default {
         return matchName && matchDate;
       });
     };
-    const getCellStyle = (progress) => {
+
+    const getCardStyle = (progress) => {
       switch (progress) {
         case '预处理':
-          return { color: 'blue' };
+          return { borderColor: 'blue' };
         case '原始数据':
-          return { color: 'green' };
+          return { borderColor: 'green' };
         case '特征提取':
-          return { color: 'red' };
+          return { borderColor: 'red' };
         default:
-          return {};
+          return { borderColor: '#ccc' };
       }
     };
 
@@ -162,9 +166,11 @@ export default {
       logout,
       filterData,
       resetFilters,
+      getCardStyle, // 确保 getCardStyle 已返回
     };
   },
 };
+
 </script>
 
 <style scoped>
@@ -191,11 +197,21 @@ export default {
 }
 
 .userinfo {
+  height: 45vh;
   margin: 50px 75px;
   width: 25%;
   background-color: rgba(255, 255, 255);
   border-radius: 15px;
   padding: 10px;
+}
+
+.info {
+  padding: 20px;
+}
+
+.avatar_container {
+  padding-top: 20px;
+  text-align: center;
 }
 
 .avatar {
@@ -228,17 +244,23 @@ export default {
   width: 75%;
   margin: 50px 75px;
   margin-left: 0;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255);
   border-radius: 15px;
   padding: 2rem;
   overflow-y: auto;
-  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.4),
-    0px 7px 13px -3px rgba(0, 0, 0, 0.3),
-    0px -3px 0px 0px rgba(0, 0, 0, 0.2) inset;
 }
 
 .filter-card {
   margin-bottom: 1rem;
   padding: 20px;
+}
+
+.experiment-list {
+  margin-top: 20px;
+}
+
+.el-card {
+  padding: 20px;
+  border-radius: 10px;
 }
 </style>
