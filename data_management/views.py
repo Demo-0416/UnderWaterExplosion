@@ -7,10 +7,10 @@ from .data_input.file_uploader import DataSaver
 from influxdb.exceptions import InfluxDBClientError
 import json
 from .data_get.get_data_from_influxdb import ori_data_get
-
 from django.views.decorators.http import require_http_methods
-
 from .models import History
+from data_processing import views as process_view
+from django.views.decorators.csrf import csrf_exempt
 
 # 参数配置
 params_simulator = {
@@ -27,6 +27,7 @@ stream_lock = threading.Lock()
 # 用于指示数据流线程是否正在运行
 is_streaming = False  
 
+@csrf_exempt
 def stream_sensor_data(request):
     global is_streaming
 
@@ -64,6 +65,10 @@ def stream_sensor_data(request):
 
             # 启动线程执行流式数据的生成和保存
             threading.Thread(target=stream_data_with_lock, args=(positions, explosion_duration, kafka_topics, num_explosions, year, exp_name)).start()
+
+            process_view.consume_sensor_data(request)
+
+            process_view.extract_features_view(request)
 
             return JsonResponse({'status': 'streaming started'}, status=200)
 

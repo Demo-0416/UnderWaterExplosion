@@ -50,8 +50,8 @@ class DataSimulator:
         def delivery_report(err, msg):
             if err is not None:
                 print('Message delivery failed: {}'.format(err))
-            else:
-                print('Message delivered to {} [{}] {}'.format(msg.topic(), msg.partition(), msg.value()))
+            # else:
+            #     print('Message delivered to {} [{}] {}'.format(msg.topic(), msg.partition(), msg.value()))
 
         def stream_data():
             time_array = np.arange(0, explosion_duration, 0.01)  # 每个爆炸持续时间的时间数组
