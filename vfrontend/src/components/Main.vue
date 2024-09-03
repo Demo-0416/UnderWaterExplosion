@@ -217,7 +217,7 @@ const charts = [];
         name: '加速度',
       },
       series: [{
-        data: sensor_data.data.map(item => [item.Time, item.Value]),
+        data: sensor_data.data,
         name: '数据1',
         type: 'line',
         smooth: true,
@@ -283,7 +283,7 @@ const charts = [];
         name: '加速度',
       },
       series: [{
-        data: sensor_data.data.map(item => [item.Time, item.Value]),
+        data: sensor_data.data,
         name: '数据1',
         type: 'line',
         smooth: true,
@@ -350,7 +350,7 @@ const charts = [];
         name: '加速度',
       },
       series: [{
-        data: sensor_data.data.map(item => [item.Time, item.Value]),
+        data: sensor_data.data,
         name: '数据1',
         type: 'line',
         smooth: true,
@@ -416,7 +416,7 @@ const charts = [];
         name: '加速度',
       },
       series: [{
-        data: sensor_data.data.map(item => [item.Time, item.Value]),
+        data: sensor_data.data,
         name: '数据1',
         type: 'line',
         smooth: true,

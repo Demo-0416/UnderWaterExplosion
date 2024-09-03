@@ -167,3 +167,24 @@ def get_ori_data(request):
             })
     else:
         return JsonResponse({'code': '3', 'message': '不允许的请求方法。只支持 GET 请求。'})
+    
+@require_http_methods(["GET"])
+def get_test_data(request):
+        try:
+            # request_body = json.loads(request.body)
+            # year = request_body['Year']
+            # exp_name = request_body['Exp_Name']
+            year = request.GET["Year"]
+            exp_name = request.GET["Exp_Name"]
+            
+            if year is None:
+                return JsonResponse({'code': '4', 'message': 'Year 参数缺失或无效。'})
+            if exp_name is None:
+                return JsonResponse({'code': '4', 'message': 'Exp_Name 参数缺失或无效。'})
+            return JsonResponse({'code': '0', 'data': 'test'})
+        except Exception as e:
+            print(f"Unexpected error: {str(e)}")
+            return JsonResponse({
+                'code': '2',
+                'message': f"Unexpected error: {str(e)}"
+            })

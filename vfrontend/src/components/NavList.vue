@@ -93,13 +93,34 @@ const handleSubMenuCheck4 = () => {
   checked4Charts[1] = !dirchecked4.value;
 }
 watch(checked1Charts, () => {  
-  console.log('asdad:  ',checked1Charts);
   emit('update:checked1Charts',checked1Charts);  
  }, {  
-
   deep: true, 
   immediate: true 
 });  
+
+watch(checked2Charts, () => {  
+  emit('update:checked2Charts',checked2Charts);  
+ }, {  
+  deep: true, 
+  immediate: true 
+});  
+
+watch(checked3Charts, () => {  
+  emit('update:checked3Charts',checked3Charts);  
+  
+ }, {  
+  deep: true, 
+  immediate: true   
+});  
+
+watch(checked4Charts, () => {  
+  emit('update:checked4Charts',checked4Charts);  
+ }, {  
+  deep: true, 
+  immediate: true 
+});  
+
 // watch(() => checked1Charts, () => {
 //   console.log('dadad  ',checked1Charts);
 //   emit('update:checked1Charts', checked1Charts);
