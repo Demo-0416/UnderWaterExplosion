@@ -42,7 +42,7 @@ class DataSimulator:
         data = base_data + noise
         return data
 
-    def stream_sensor_data(self, positions, explosion_duration, kafka_topics, num_explosions):
+    def stream_sensor_data(self, positions, explosion_duration, kafka_topics, num_explosions, year, exp_name):
         producers = {}
         for topic in kafka_topics:
             producers[topic] = Producer({'bootstrap.servers': 'localhost:9092'})
@@ -57,6 +57,8 @@ class DataSimulator:
             time_array = np.arange(0, explosion_duration, 0.01)  # 每个爆炸持续时间的时间数组
             sensor_types = ['Acceleration', 'Strain', 'Temperature', 'Pressure']
             explosion_interval = 30  # 每次爆炸之间的间隔
+            records = []  # 用于保存所有生成的数据记录
+
             for explosion in range(num_explosions):
                 explosion_start_time = explosion * (explosion_duration + explosion_interval)
                 for location_index, position in enumerate(positions):
@@ -72,40 +74,21 @@ class DataSimulator:
                                 'Position': float(position),
                                 'Value': float(sensor_data)  # 单个数据点
                             }
+                            records.append(record)  # 将记录加入列表
+
+                            # 发送到 Kafka 主题（如需要保留Kafka发送功能）
                             topic = kafka_topics[location_index]
                             producer = producers.get(topic)
                             if producer:
                                 producer.produce(topic=topic, value=json.dumps(record), callback=delivery_report)
+
                 for producer in producers.values():
                     producer.flush()
-                # time.sleep(explosion_interval)
+
+            # 保存数据到 CSV 文件
+            filename = f"{year}_{exp_name}_sensor_data.csv"
+            df = pd.DataFrame(records)
+            df.to_csv(filename, index=False)
+            print(f"Data saved to {filename}")
 
         stream_data()
-
-    def save_sensor_data(self, positions, duration, filename, num_explosions):
-        records = []
-        explosion_interval = 30  # 每次爆炸之间的间隔
-        total_duration = num_explosions * (duration + explosion_interval)
-        time_array = np.arange(0, duration, 0.01)  # 生成从0开始，每0.01s间隔的时间数组
-        sensor_types = ['Acceleration', 'Strain', 'Temperature', 'Pressure']
-        
-        for explosion in range(num_explosions):
-            explosion_start_time = explosion * (duration + explosion_interval)
-            for location_index, position in enumerate(positions):
-                for i, sensor_type in enumerate(sensor_types):
-                    sensor_id = location_index * 4 + i
-                    for t in time_array:
-                        timestamp = explosion_start_time + t
-                        sensor_data = self.simulate_sensor_data(sensor_type, position, np.array([t]))[0]
-                        record = {
-                            'Time': timestamp,
-                            'SensorID': sensor_id,
-                            'Type': sensor_type,
-                            'Position': position,
-                            'Value': sensor_data  # 单个数据点
-                        }
-                        records.append(record)
-        
-        df = pd.DataFrame(records)
-        df.to_csv(filename, index=False)
-        print(f"Data saved to {filename}")
