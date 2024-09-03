@@ -54,8 +54,8 @@ def stream_sensor_data(request):
 
             # 从前端请求中获取 year 和 exp_name
             data = json.loads(request.body)
-            year = data.get('year')
-            exp_name = data.get('exp_name')
+            year = data.get('Year')
+            exp_name = data.get('Exp_name')
 
             if not year or not exp_name:
                 return JsonResponse({
@@ -230,7 +230,7 @@ def create_new_exp(request):
         try:
             form = UploadFileForm(request.POST, request.FILES)
             year = request.POST.get('Year')
-            exp_name = request.POST.get('exp_name')
+            exp_name = request.POST.get('Exp_Name')
             if form.is_valid():
                 new_file = request.FILES['file']
                 file_path = save_file(new_file, year, exp_name)
