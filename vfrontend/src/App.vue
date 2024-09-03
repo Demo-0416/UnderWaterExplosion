@@ -9,9 +9,9 @@ import User from './components/userInfo.vue'
 
 <template>
   <div class="laybox">
-    <Main></Main>
-    <User></User>
-    <!-- <router-view></router-view> -->
+    <!-- <Main></Main> -->
+    <!-- <User></User> -->
+    <router-view></router-view>
     <!-- <loadnewfile></loadnewfile> -->
     <!-- <list></List> -->
     <!-- <login></Login> -->
