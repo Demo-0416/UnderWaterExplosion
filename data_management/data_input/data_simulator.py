@@ -1,9 +1,11 @@
 import json
 import threading
 import time
+import os
 import numpy as np
 from confluent_kafka import Producer
 import pandas as pd
+from data_management.setting import csv_file_path
 
 class DataSimulator:
     def __init__(self, params):
@@ -87,8 +89,12 @@ class DataSimulator:
 
             # 保存数据到 CSV 文件
             filename = f"{year}_{exp_name}_sensor_data.csv"
+            save_directory = csv_file_path
+            if not os.path.exists(save_directory):
+                os.makedirs(save_directory)
+            save_path = os.path.join(save_directory, filename)
             df = pd.DataFrame(records)
-            df.to_csv(filename, index=False)
+            df.to_csv(save_path, index=False)
             print(f"Data saved to {filename}")
 
         stream_data()
