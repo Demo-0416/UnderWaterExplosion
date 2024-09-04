@@ -9,7 +9,7 @@
           <template #title>
             <el-checkbox v-model="dirchecked1" size="large"
             @click.stop="handleSubMenuCheck1" > 
-            <el-icon class="my-icon"><FolderOpened /></el-icon><span>时序特征</span></el-checkbox> 
+            <el-icon class="my-icon"><FolderOpened /></el-icon><span>温度</span></el-checkbox> 
           </template>
           <el-menu-item index="1-1"><el-checkbox v-model="checked1Charts[0]" size="large" @change="funk"><el-icon><DocumentRemove /></el-icon>峰值</el-checkbox></el-menu-item>
           <el-menu-item index="1-2"><el-checkbox v-model="checked1Charts[1]" size="large"><el-icon><DocumentRemove /></el-icon>最小值</el-checkbox></el-menu-item>

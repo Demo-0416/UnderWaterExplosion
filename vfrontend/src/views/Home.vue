@@ -39,24 +39,30 @@
         <!-- <mymain :selected1Charts="selected1Charts" /> -->
 
         <!-- 原始数据 -->
-        <div class="main-container" v-if="active == 1">
-          cat
-          <VueDraggableNext class="charts-container">
-            <div v-for="(chart, index) in Ori_Strain_Charts" :key="chart.id" class="chart-item">
-              <MyChart :chartOptions="chart.options" />
-            </div>
-          </VueDraggableNext>
-          <VueDraggableNext class="charts-container">
-            <div v-for="(chart, index) in Ori_Pressure_Charts" :key="chart.id" class="chart-item">
-              <MyChart :chartOptions="chart.options" />
-            </div>
-          </VueDraggableNext>
-          <VueDraggableNext class="charts-container">
+        <div class="main-container" v-if="active == 1 ">
+          <h3 v-if="dir1charts == true">温度</h3>
+          <VueDraggableNext class="charts-container" v-if="dir1charts == true">
             <div v-for="(chart, index) in Ori_Temperature_Charts" :key="chart.id" class="chart-item">
               <MyChart :chartOptions="chart.options" />
             </div>
           </VueDraggableNext>
-          <VueDraggableNext class="charts-container">
+          
+          <VueDraggableNext class="charts-container" v-if="dir2charts == true">
+            <h3>应变</h3>
+            <div v-for="(chart, index) in Ori_Strain_Charts" :key="chart.id" class="chart-item">
+              <MyChart :chartOptions="chart.options" />
+            </div>
+          </VueDraggableNext>
+          
+          <VueDraggableNext class="charts-container"  v-if="dir3charts == true">
+            <h3>自由场压力</h3>
+            <div v-for="(chart, index) in Ori_Pressure_Charts" :key="chart.id" class="chart-item">
+              <MyChart :chartOptions="chart.options" />
+            </div>
+          </VueDraggableNext>
+          
+          <VueDraggableNext class="charts-container"  v-if="dir4charts == true">
+            <h3>加速度</h3>
             <div v-for="(chart, index) in Ori_Acc_Charts" :key="chart.id" class="chart-item">
               <MyChart :chartOptions="chart.options" />
             </div>
@@ -65,52 +71,40 @@
 
         <!-- 数据预处理 -->
         <div class="main-container" v-else-if="active == 2">
-          dog
-          <VueDraggableNext class="charts-container">
-            <div v-for="(chart, index) in Strain_Charts" :key="chart.id" class="chart-item">
-              <MyChart :chartOptions="chart.options" />
-            </div>
-          </VueDraggableNext>
-          <VueDraggableNext class="charts-container">
-            <div v-for="(chart, index) in Pressure_Charts" :key="chart.id" class="chart-item">
-              <MyChart :chartOptions="chart.options" />
-            </div>
-          </VueDraggableNext>
-          <VueDraggableNext class="charts-container">
+          <VueDraggableNext class="charts-container" v-if="dir1charts == true">
+            <h3>温度</h3>
             <div v-for="(chart, index) in Temperature_Charts" :key="chart.id" class="chart-item">
               <MyChart :chartOptions="chart.options" />
             </div>
           </VueDraggableNext>
-          <VueDraggableNext class="charts-container">
+          
+          <VueDraggableNext class="charts-container" v-if="dir2charts == true">
+            <h3>应变</h3>
+            <div v-for="(chart, index) in Strain_Charts" :key="chart.id" class="chart-item">
+              <MyChart :chartOptions="chart.options" />
+            </div>
+          </VueDraggableNext>
+          
+          <VueDraggableNext class="charts-container" v-if="dir3charts == true">
+            <h3>自由场压力</h3>
+            <div v-for="(chart, index) in Pressure_Charts" :key="chart.id" class="chart-item">
+              <MyChart :chartOptions="chart.options" />
+            </div>
+          </VueDraggableNext>
+          
+          <VueDraggableNext class="charts-container" v-if="dir4charts == true">
+            <h3>加速度</h3>
             <div v-for="(chart, index) in Acc_Charts" :key="chart.id" class="chart-item">
               <MyChart :chartOptions="chart.options" />
             </div>
           </VueDraggableNext>
+
         </div>
 
         <!-- 提取数据特征 -->
         <div class="main-container" v-else-if="active == 3">
-          bird
-          <VueDraggableNext class="charts-container">
-            <div v-for="(chart, index) in Strain_Charts" :key="chart.id" class="chart-item">
-              <MyChart :chartOptions="chart.options" />
-            </div>
-          </VueDraggableNext>
-          <VueDraggableNext class="charts-container">
-            <div v-for="(chart, index) in Pressure_Charts" :key="chart.id" class="chart-item">
-              <MyChart :chartOptions="chart.options" />
-            </div>
-          </VueDraggableNext>
-          <VueDraggableNext class="charts-container">
-            <div v-for="(chart, index) in Temperature_Charts" :key="chart.id" class="chart-item">
-              <MyChart :chartOptions="chart.options" />
-            </div>
-          </VueDraggableNext>
-          <VueDraggableNext class="charts-container">
-            <div v-for="(chart, index) in Acc_Charts" :key="chart.id" class="chart-item">
-              <MyChart :chartOptions="chart.options" />
-            </div>
-          </VueDraggableNext>
+          
+        
         </div>
 
       </el-main>
@@ -128,6 +122,7 @@ import { ElMessage } from 'element-plus';
 import MyChart from '@/components/Mychart.vue';
 import * as echarts from 'echarts';
 import axios from 'axios';
+
 
 const imgsrc = ref(blue3)
 const fit = ref('contain')
@@ -384,7 +379,11 @@ const fetchData = async () => {
               state: '原始数据',
             }
             const response = await axios.get('http://127.0.0.1:8000/data_management/get_data/', {
-              params: ori_param
+              params:  {
+              Year: value.value[0],
+              Exp_Name: value.value[1],
+              state: '原始数据',
+            }
             });
             if (response.data.code == 0) {
               Ori_Acceleration_data.value = response.data.data.Acceleration;
@@ -470,7 +469,8 @@ watch(Ori_Acceleration_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
             textStyle: {
@@ -536,7 +536,8 @@ watch(Ori_Pressure_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
             textStyle: {
@@ -603,7 +604,8 @@ watch(Ori_Strain_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
             textStyle: {
@@ -668,7 +670,8 @@ watch(Ori_Temperature_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
             textStyle: {
@@ -736,7 +739,8 @@ watch(Acceleration_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
             textStyle: {
@@ -802,7 +806,8 @@ watch(Pressure_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
             textStyle: {
@@ -869,7 +874,8 @@ watch(Strain_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
             textStyle: {
@@ -934,7 +940,8 @@ watch(Temperature_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
             textStyle: {
