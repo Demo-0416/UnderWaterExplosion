@@ -1,6 +1,6 @@
 # 参数待填
-token = "LlbL-XmH8-GYoYyF2MLE5AV5OyoMUAMDyNPgeeskaJSbUBR20Iv7cAM7-XYnLrFTKiif-tv7ZCQQ05qEaLIyqw=="
-org = "shiki_group"
+token = "UfuolMCMBJ4UFTKu36vk-1RQuWOzx2B2dhrAI8i58Fmh7xN2vfcPOnkksm_U2ZFxaFsSB5a8M5d4QGam8aJmvg=="
+org = "Data"
 url = "http://localhost:8086"
 bucket = 'test1'
 
@@ -11,4 +11,4 @@ settings = {
     'bucket': bucket
 }
 
-csv_file_path = "D:/xiaoxueqi/formal/project/UnderWaterExplosion/data/"
+csv_file_path = "E:/2024XXQ/UnderWaterExplosion/data/"

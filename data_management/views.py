@@ -70,14 +70,9 @@ def stream_sensor_data(request):
             explosion_duration = 1  
             num_explosions = 5  
 
-            # 启动线程执行流式数据的生成和保存
-            threading.Thread(target=stream_data_with_lock, args=(positions, explosion_duration, kafka_topics, num_explosions, year, exp_name)).start()
-
-            process_view.consume_sensor_data(request)
-
-            process_view.extract_features_view(request)
-
-            return JsonResponse({'status': 'streaming started'}, status=200)
+            # 直接调用 stream_data_with_lock，而不是启动线程
+            stream_data_with_lock(positions, explosion_duration, kafka_topics, num_explosions, year, exp_name)
+            return JsonResponse({'status': 'streaming completed'}, status=200)
 
         except Exception as e:
             is_streaming = False

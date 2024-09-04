@@ -17,22 +17,6 @@ filtered_records = []
 lock = threading.Lock()  # 用于consume_sensor_data的锁
 feature_lock = threading.Lock()  # 用于extract_features_view的锁
 
-def iir_filter(input_value, b, a, zi):
-    """
-    IIR滤波器
-
-    参数:
-    input_value - 输入值
-    b, a - 滤波器系数
-    zi - 初始状态
-
-    返回:
-    output_value - 经过滤波后的输出值
-    zi - 更新后的状态
-    """
-    output_value, zi = signal.lfilter(b, a, [input_value], zi=zi)
-    return output_value[0], zi
-
 @csrf_exempt
 def consume_sensor_data(request):
     if request.method == 'POST':
@@ -51,6 +35,7 @@ def consume_sensor_data(request):
             data = json.loads(request.body)
             year = data.get('Year')
             exp_name = data.get('Exp_name')
+            code = data.get('Code')
 
             if not year or not exp_name:
                 return JsonResponse({
@@ -71,7 +56,7 @@ def consume_sensor_data(request):
             consumer.subscribe(kafka_topics)
 
             print("Fetching data from Kafka...")
-            records = fetch_data(consumer)
+            records = fetch_data(consumer,code)
             cache.set('preprocessed_data', records, timeout=3600)
             print("Data fetched successfully.")
 
