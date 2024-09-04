@@ -11,39 +11,82 @@ from data_management import models
 class DataSaver:
 
     def read_csv_and_write_to_influxdb(self, year, exp_name):
-        # client = InfluxDBClient(**settings)
-        # write_api = client.write_api(write_options=SYNCHRONOUS)
-        # measurement = year + '_' + exp_name + '_ori'
-        # cur_csv_file_path = csv_file_path + year + "_" + exp_name + '_sensor_data.csv'
-        # # 读取 CSV 文件并将数据写入 InfluxDB
-        # df = pd.read_csv(cur_csv_file_path)
-        # for index, row in df.iterrows():
-        #     point = Point(measurement)  # 替换为你的测量名称
-        #     point = point.tag("SensorID", row['SensorID'])  # 添加 SensorID 作为标签
-        #     point = point.tag("Type", row['Type'])
-        #     point = point.field("Position", row['Position'])
-        #     point = point.field("Value", row['Value'])
-        #     point = point.field("Time", row['Time'])  # 添加时间戳
-        #
-        #     # 写入 InfluxDB
-        #     write_api.write(bucket=settings['bucket'], org=settings['org'], record=point)
-        #
-        # # 关闭 InfluxDB 客户端
-        # client.close()
+        client = InfluxDBClient(**settings)
+        write_api = client.write_api(write_options=SYNCHRONOUS)
+        measurement = year + '_' + exp_name + '_ori'
+        cur_csv_file_path = csv_file_path + year + "_" + exp_name + '_sensor_data.csv'
+        # 读取 CSV 文件并将数据写入 InfluxDB
+        df = pd.read_csv(cur_csv_file_path)
+        for index, row in df.iterrows():
+            point = Point(measurement)  # 替换为你的测量名称
+            point = point.tag("SensorID", row['SensorID'])  # 添加 SensorID 作为标签
+            point = point.tag("Type", row['Type'])
+            point = point.field("Position", row['Position'])
+            point = point.field("Value", row['Value'])
+            point = point.field("Time", row['Time'])  # 添加时间戳
+
+            # 写入 InfluxDB
+            write_api.write(bucket=settings['bucket'], org=settings['org'], record=point)
+
+        # 关闭 InfluxDB 客户端
+        client.close()
         # 生成一次新实验
         msg = FollowExp().create_history(year, exp_name)
         return msg
 
     # 将预处理后数据存入influxdb
-    def save_pre_to_db(self, year, exp_name):
+    def save_pre_to_db(self, year, exp_name, records):
+        # 更改records格式
+        all_records = []
+        for sensor_type, sensor_data in records.items():
+            for data_entry in sensor_data:
+                sensor_id = data_entry['SensorID']
+                sensor_type = data_entry['Type']
+                position = data_entry['Position']
+                for data_point in data_entry['data']:
+                    all_records.append({
+                        'Time': data_point['Time'],
+                        'SensorID': sensor_id,
+                        'Type': sensor_type,
+                        'Position': position,
+                        'Value': data_point['Value']
+                    })
         client = InfluxDBClient(**settings)
         write_api = client.write_api(write_options=SYNCHRONOUS)
         measurement = year + '_' + exp_name + '_pre'
+        for record in all_records:
+            point = Point(measurement)  # 替换为你的测量名称
+            point = point.tag("SensorID", record['SensorID'])  # 添加 SensorID 作为标签
+            point = point.tag("Type", record['Type'])
+            point = point.field("Position", record['Position'])
+            point = point.field("Value", record['Value'])
+            point = point.field("Time", record['Time'])
 
-    def save_fix_to_db(self, year, exp_name):
-        client = InfluxDBClient(**settings)
-        write_api = client.write_api(write_options=SYNCHRONOUS)
-        measurement = year + '_' + exp_name + '_fix'
+            write_api.write(bucket=settings['bucket'], org=settings['org'], record=point)
+        client.close()
+
+    def save_fix_to_db(self, year, exp_name, features):
+        try:
+            client = InfluxDBClient(**settings)
+            write_api = client.write_api(write_options=SYNCHRONOUS)
+            measurement = year + '_' + exp_name + '_fix'
+            for key, records in features.items():
+                for record in records:
+                    point = Point(measurement)
+                    point = point.tag("Type", key)
+                    point = point.tag("SensorID", record['SensorID'])
+                    point = point.field("Mean", record['Mean'])
+                    point = point.field("Max", record['Max'])
+                    point = point.field("Min", record['Min'])
+                    point = point.field("StdDev", record['StdDev'])
+                    point = point.field("PeakToPeak", record['PeakToPeak'])
+
+                    write_api.write(bucket=settings['bucket'], org=settings['org'], record=point)
+            client.close()
+        except Exception as e:
+            print(e)
+
+
 
 
 

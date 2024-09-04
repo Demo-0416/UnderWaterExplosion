@@ -2,18 +2,26 @@ from influxdb_client import InfluxDBClient
 from data_management.setting import settings
 
 
-# 获取一次实验的原始数据
 def data_get(year, exp_name, state):
-    client = InfluxDBClient(**settings)
     if state == "原始数据":
         state = 'ori'
-    if state == "预处理数据":
+        records = data_get_ori_and_pre(year, exp_name, state)
+        return records
+    elif state == "预处理数据":
         state = 'pre'
-    if state == "特征提取":
+        records = data_get_ori_and_pre(year, exp_name, state)
+        return records
+    elif state == "特征提取":
         state = 'fix'
+        records = data_get_fix(year, exp_name, state)
+        return records
+
+
+# 获取一次实验的原始数据
+def data_get_ori_and_pre(year, exp_name, state):
+    client = InfluxDBClient(**settings)
     query_api = client.query_api()
     measurement = year + '_' + exp_name + '_' + state
-    print(measurement)
     query = """from(bucket: "test1")
         |> range(start: 0)
         |> filter(fn: (r) => r["_measurement"] == "{}")
@@ -41,3 +49,33 @@ def data_get(year, exp_name, state):
                 records[sensor_type].append(sensor_data_entry)
             sensor_data_entry['data'].append(time_value_pair)
     return records
+
+
+def data_get_fix(year, exp_name, state):
+    client = InfluxDBClient(**settings)
+    query_api = client.query_api()
+    measurement = year + '_' + exp_name + '_' + state
+    query = """from(bucket: "test1")
+            |> range(start: 0)
+            |> filter(fn: (r) => r["_measurement"] == "{}")
+            |> filter(fn: (r) => r["_field"] == "Mean" or r["_field"] == "Max" or r["_field"] == "Min" or
+            r["_field"] == "StdDev" or r["_field"] == "PeakToPeak") 
+            |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+            """.format(measurement)
+    tables = query_api.query(query)
+    records = {'Acceleration': [], 'Strain': [], 'Temperature': [], 'Pressure': []}
+    for table in tables:
+        for record in table:
+            sensor_id = record['SensorID']
+            sensor_type = record['Type']
+            cur_fixture = {
+                'SensorID': sensor_id,
+                'Mean': record['Mean'],
+                'Max': record['Max'],
+                'Min': record['Min'],
+                'StdDev': record['StdDev'],
+                'PeakToPeak': record['PeakToPeak'],
+            }
+            records[sensor_type].append(cur_fixture)
+    return records
+

@@ -7,6 +7,9 @@ import json
 from data_processing.preprocess.pre_algorithem import fetch_data
 from data_processing.feature.feature_extraction import extract_features
 from django.core.cache import cache
+from data_management.data_input.file_uploader import FollowExp
+from data_management.data_input.file_uploader import  DataSaver
+from django.views.decorators.csrf import csrf_exempt
 
 # Global lists to store raw and filtered records
 raw_records = []
@@ -30,6 +33,7 @@ def iir_filter(input_value, b, a, zi):
     output_value, zi = signal.lfilter(b, a, [input_value], zi=zi)
     return output_value[0], zi
 
+@csrf_exempt
 def consume_sensor_data(request):
     if request.method == 'POST':
         lock_acquired = lock.acquire(blocking=False)
@@ -45,8 +49,8 @@ def consume_sensor_data(request):
 
             # 从请求体中获取年份和实验名
             data = json.loads(request.body)
-            year = data.get('year')
-            exp_name = data.get('exp_name')
+            year = data.get('Year')
+            exp_name = data.get('Exp_name')
 
             if not year or not exp_name:
                 return JsonResponse({
@@ -71,9 +75,15 @@ def consume_sensor_data(request):
             cache.set('preprocessed_data', records, timeout=3600)
             print("Data fetched successfully.")
 
+            # 保存数据到db
+            DataSaver().save_pre_to_db(year, exp_name, records)
+
             # 保存数据到 CSV 文件
-            filename = f"{year}_{exp_name}_preprocess_data.csv"
-            save_records_to_csv(records, filename)
+            # filename = f"{year}_{exp_name}_preprocess_data.csv"
+            # save_records_to_csv(records, filename)
+
+            # 改变该实验标识的status
+            FollowExp().change_state_to_pre(year=year, exp_name=exp_name)
 
             consumer.commit()
 
@@ -114,6 +124,7 @@ def consume_sensor_data(request):
             'message': '不允许的请求方法。只支持 POST 请求。'
         }, status=405)
 
+
 def save_records_to_csv(records, filename):
     # 将处理后的记录保存为CSV文件
     all_records = []
@@ -136,6 +147,7 @@ def save_records_to_csv(records, filename):
     df.to_csv(filename, index=False)
     print(f"Data saved to {filename}")
 
+@csrf_exempt
 def extract_features_view(request):
     if request.method == 'POST':
         feature_lock_acquired = feature_lock.acquire(blocking=False)
@@ -147,6 +159,9 @@ def extract_features_view(request):
             }, status=200)
 
         try:
+            data = json.loads(request.body)
+            year = data.get('Year')
+            exp_name = data.get('Exp_name')
             preprocessed_data = cache.get('preprocessed_data')
             if not preprocessed_data:
                 return JsonResponse({
@@ -156,21 +171,26 @@ def extract_features_view(request):
 
             # 进行特征提取
             features = extract_features(preprocessed_data)
+            print("start save fixture to db")
+            DataSaver().save_fix_to_db(year, exp_name, features)
+            print("finish save fixture to db")
+            FollowExp().change_state_to_fix(year=year, exp_name=exp_name)
+            print("标记重新设置")
             
-            # 将特征保存到 CSV 文件
-            year = '2024'  # 示例年份，实际应用中从请求中获取年份
-            exp_name = 'features'  # 示例实验名称，实际应用中从请求中获取实验名称
-            filename = f'{year}_{exp_name}_features.csv'
-            df = pd.DataFrame(features)
-            df.to_csv(filename, index=False)
-            print(f"Features saved to {filename}")
+            # # 将特征保存到 CSV 文件
+            # year = '2024'  # 示例年份，实际应用中从请求中获取年份
+            # exp_name = 'features'  # 示例实验名称，实际应用中从请求中获取实验名称
+            # filename = f'{year}_{exp_name}_features.csv'
+            # df = pd.DataFrame(features)
+            # df.to_csv(filename, index=False)
+            # print(f"Features saved to {filename}")
 
             # 从缓存中删除预处理数据
             cache.delete('preprocessed_data')
 
             return JsonResponse({
                 'status': 'success',
-                'message': f'Features extracted and saved to {filename}'
+                'message': f'Features extracted and saved'
             }, status=200)
 
         except Exception as e:
@@ -186,5 +206,5 @@ def extract_features_view(request):
     else:
         return JsonResponse({
             'status': 'error',
-            'message': 'Method not allowed. Only GET requests are supported.'
+            'message': 'Method not allowed. Only POST requests are supported.'
         }, status=405)

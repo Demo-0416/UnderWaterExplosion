@@ -6,6 +6,7 @@ import numpy as np
 from confluent_kafka import Producer
 import pandas as pd
 from data_management.setting import csv_file_path
+from data_management.data_input.file_uploader import DataSaver
 
 class DataSimulator:
     def __init__(self, params):
@@ -96,5 +97,7 @@ class DataSimulator:
             df = pd.DataFrame(records)
             df.to_csv(save_path, index=False)
             print(f"Data saved to {filename}")
+            DataSaver().read_csv_and_write_to_influxdb(year, exp_name)
+            print(f"Data saved to db")
 
         stream_data()

@@ -12,11 +12,15 @@
         <img :src="userInfo.avatar" alt="avatar" class="avatar" />
       </div>
       <div class="info">
-        <p>用户名: {{ userInfo.username }}</p>
+        用户名: {{ userInfo.username }}
       </div>
       <div class="operation">
-        <div @click="changePassword">修改信息</div>
-        <div @click="createExperiment">新建实验</div>
+        <div>
+          <input type="file" @change="handleFileUpload" accept=".csv" style="display: none;" ref="fileInput" />
+          <input type="text" v-model="expYear" placeholder="输入年份" />
+          <input type="text" v-model="expName" placeholder="输入实验名称" />
+          <div @click="triggerFileInput">上传CSV文件</div>
+        </div>
         <div @click="logout">退出登录</div>
       </div>
     </div>
@@ -34,8 +38,8 @@
             </el-col>
             <el-col :span="8">
               <el-form-item label="实验日期">
-                <el-date-picker v-model="filters.dateRange" type="daterange" range-separator="至"
-                  start-placeholder="开始日期" end-placeholder="结束日期" format="YYYY-MM-DD" />
+                <el-date-picker v-model="filters.dateRange" type="daterange" range-separator="至" start-placeholder="开始"
+                  end-placeholder="结束" format="YYYY-MM-DD" />
               </el-form-item>
             </el-col>
             <el-col :span="8">
@@ -51,12 +55,15 @@
       <!-- 历史实验数据时间轴 -->
       <el-card>
         <h3>历史实验数据</h3>
-        <el-table :data="filteredData" style="width: 100%">
-          <el-table-column prop="name" label="实验名称" width="200"></el-table-column>
-          <el-table-column prop="progress" label="实验进度" width="180"
-            :cell-style="({ row }) => getCellStyle(row.progress)"></el-table-column>
-          <el-table-column prop="time" label="时间" width="180"></el-table-column>
-        </el-table>
+        <el-row :gutter="20" class="experiment-list">
+          <el-col :span="24" v-for="item in filteredData" :key="item.id">
+            <el-card :style="getCardStyle(item.progress)" @click="handleItemClick(item)">
+              <h3>{{ item.name }}</h3>
+              <p><strong>进度:</strong> {{ item.progress }}</p>
+              <p><strong>时间:</strong> {{ item.time }}</p>
+            </el-card>
+          </el-col>
+        </el-row>
       </el-card>
     </div>
   </div>
@@ -72,9 +79,48 @@ export default {
     Edit,
   },
   setup() {
+    const avatarImage = new URL('../assets/avatar.jpg', import.meta.url).href;
+    const fileInput = ref(null);
+    const expYear = ref('');
+    const expName = ref('');
+
+    const triggerFileInput = () => {
+      fileInput.value.click();
+    };
+
+    const handleFileUpload = async (event) => {
+      const file = event.target.files[0];
+      if (file && file.type === 'text/csv') {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('year', expYear.value);
+        formData.append('exp_name', expName.value);
+
+        try {
+          const response = await axios.post('http://127.0.0.1:8000/data_management/create_new_exp/', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+
+          if (response.data.code === '0') {
+            // 上传成功后刷新数据
+            await fetchData();
+            alert('CSV 文件上传成功，数据已刷新！');
+          } else {
+            alert('上传失败，请检查输入内容并重试。');
+          }
+        } catch (error) {
+          console.error('上传失败:', error);
+          alert('CSV 文件上传失败，请重试。');
+        }
+      } else {
+        alert('请上传有效的 CSV 文件');
+      }
+    };
     const userInfo = ref({
-      avatar: '',
-      username: '',
+      avatar: avatarImage,
+      username: 'kiarkira',
     });
 
     const filters = ref({
@@ -85,22 +131,34 @@ export default {
     const historyData = ref([]);
     const filteredData = ref([]);
 
+    const handleItemClick = (item) => {
+      const value = ref([item.time, item.name]);
+      router.push({
+        path: '/',
+        query: {
+          year: value.value[0],
+          experimentName: value.value[1],
+        },
+      });
+    };
+
     const fetchData = async () => {
-      const avatarImage = new URL('../assets/avatar.jpg', import.meta.url).href;
-
-      userInfo.value = {
-        avatar: avatarImage,
-        username: '实验用户',
-      };
-
-      historyData.value = [
-        { id: 1, name: '实验A', progress: '预处理', time: '2024-08-01' },
-        { id: 2, name: '实验B', progress: '原始数据', time: '2024-08-10' },
-        { id: 3, name: '实验C', progress: '特征提取', time: '2024-08-15' },
-        { id: 4, name: '实验D', progress: '预处理', time: '2024-08-20' },
-      ];
-
-      filteredData.value = historyData.value;
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/data_management/get_history/');
+        if (response.data.code === '0') {
+          historyData.value = response.data.data.map(item => ({
+            id: item.exp_name, // 根据实际需要设置合适的 id
+            name: item.exp_name,
+            progress: item.status,
+            time: item.year, // 这里假设 year 是时间字段
+          }));
+          filteredData.value = historyData.value;
+        } else {
+          console.error('Failed to fetch history data');
+        }
+      } catch (error) {
+        console.error('Error fetching history data:', error);
+      }
     };
 
     const filterData = () => {
@@ -115,25 +173,13 @@ export default {
         return matchName && matchDate;
       });
     };
-    const getCellStyle = (progress) => {
-      switch (progress) {
-        case '预处理':
-          return { color: 'blue' };
-        case '原始数据':
-          return { color: 'green' };
-        case '特征提取':
-          return { color: 'red' };
-        default:
-          return {};
-      }
-    };
 
-    const resetFilters = () => {
-      filters.value = {
-        experimentName: '',
-        dateRange: [],
-      };
-      filteredData.value = historyData.value;
+    const resetFilters = async () => {
+      try {
+        await fetchData(); // 调用 fetchData 来刷新数据
+      } catch (error) {
+        console.error('Error resetting filters:', error);
+      }
     };
 
     const changePassword = () => {
@@ -149,7 +195,7 @@ export default {
     };
 
     onMounted(() => {
-      fetchData();
+      fetchData(); // 页面加载时调用 fetchData 获取数据
     });
 
     return {
@@ -157,7 +203,13 @@ export default {
       filters,
       historyData,
       filteredData,
+      fileInput,
+      expYear,
+      expName,
+      triggerFileInput,
+      handleFileUpload,
       changePassword,
+      handleItemClick,
       createExperiment,
       logout,
       filterData,
@@ -165,6 +217,9 @@ export default {
     };
   },
 };
+
+
+
 </script>
 
 <style scoped>
@@ -191,11 +246,21 @@ export default {
 }
 
 .userinfo {
+  height: 45vh;
   margin: 50px 75px;
   width: 25%;
   background-color: rgba(255, 255, 255);
   border-radius: 15px;
   padding: 10px;
+}
+
+.info {
+  padding: 20px;
+}
+
+.avatar_container {
+  padding-top: 20px;
+  text-align: center;
 }
 
 .avatar {
@@ -228,17 +293,23 @@ export default {
   width: 75%;
   margin: 50px 75px;
   margin-left: 0;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255);
   border-radius: 15px;
   padding: 2rem;
   overflow-y: auto;
-  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.4),
-    0px 7px 13px -3px rgba(0, 0, 0, 0.3),
-    0px -3px 0px 0px rgba(0, 0, 0, 0.2) inset;
 }
 
 .filter-card {
   margin-bottom: 1rem;
   padding: 20px;
+}
+
+.experiment-list {
+  margin-top: 20px;
+}
+
+.el-card {
+  padding: 20px;
+  border-radius: 10px;
 }
 </style>
