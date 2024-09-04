@@ -15,19 +15,13 @@
         用户名: {{ userInfo.username }}
       </div>
       <div class="operation">
-        <div>
-          <input type="file" @change="handleFileUpload" accept=".csv" style="display: none;" ref="fileInput" />
-          <input type="text" v-model="expYear" placeholder="输入年份" />
-          <input type="text" v-model="expName" placeholder="输入实验名称" />
-          <div @click="triggerFileInput">上传CSV文件</div>
-        </div>
+        <div @click="generate">生成数据</div>
         <div @click="logout">3D演示</div>
       </div>
     </div>
 
     <!-- 历史实验数据 -->
     <div class="history">
-      <!-- 筛选器 -->
       <el-card class="filter-card">
         <el-form :model="filters" label-width="100px">
           <el-row :gutter="20">
@@ -53,17 +47,21 @@
       </el-card>
 
       <!-- 历史实验数据时间轴 -->
-      <el-card>
+      <el-card style="padding-bottom: 20px;">
         <h3>历史实验数据</h3>
-        <el-row :gutter="20" class="experiment-list">
-          <el-col :span="24" v-for="item in filteredData" :key="item.id">
-            <el-card @click="handleItemClick(item)">
-              <h3>{{ item.name }}</h3>
-              <p><strong>进度:</strong> {{ item.progress }}</p>
-              <p><strong>时间:</strong> {{ item.time }}</p>
-            </el-card>
-          </el-col>
-        </el-row>
+        <div style="  max-height: 50vh; overflow-y: auto; ">
+          <el-row :gutter="20" class="experiment-list">
+            <el-col :span="24" v-for="item in filteredData.slice().reverse()" :key="item.id">
+              <el-card @click="item.loading ? null : handleItemClick(item)">
+                <h3>{{ item.name }}</h3>
+                <p v-if="item.loading"><strong>生成中...</strong></p>
+                <el-progress v-if="item.loading" :percentage="item.progress" />
+                <p v-else><strong>进度:</strong> {{ item.progress }}</p>
+                <p><strong>时间:</strong> {{ item.time }}</p>
+              </el-card>
+            </el-col>
+          </el-row>
+        </div>
       </el-card>
     </div>
   </div>
@@ -74,53 +72,15 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { Edit } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
+
 export default {
   components: {
     Edit,
   },
   setup() {
-    const router = useRouter(); // 获取 router 实例
-    const avatarImage = new URL('../assets/avatar.jpg', import.meta.url).href;
-    const fileInput = ref(null);
-    const expYear = ref('');
-    const expName = ref('');
-
-    const triggerFileInput = () => {
-      fileInput.value.click();
-    };
-
-    const handleFileUpload = async (event) => {
-      const file = event.target.files[0];
-      if (file && file.type === 'text/csv') {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('year', expYear.value);
-        formData.append('exp_name', expName.value);
-
-        try {
-          const response = await axios.post('http://127.0.0.1:8000/data_management/create_new_exp/', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-
-          if (response.data.code === '0') {
-            // 上传成功后刷新数据
-            await fetchData();
-            alert('CSV 文件上传成功，数据已刷新！');
-          } else {
-            alert('上传失败，请检查输入内容并重试。');
-          }
-        } catch (error) {
-          console.error('上传失败:', error);
-          alert('CSV 文件上传失败，请重试。');
-        }
-      } else {
-        alert('请上传有效的 CSV 文件');
-      }
-    };
+    const router = useRouter();
     const userInfo = ref({
-      avatar: avatarImage,
+      avatar: new URL('../assets/avatar.jpg', import.meta.url).href,
       username: 'kiarkira',
     });
 
@@ -129,10 +89,64 @@ export default {
       dateRange: [],
     });
 
-    const historyData = ref([]);
+    const historyData = ref([{
+      "time": "2024",
+      "name": "test2",
+      "progress": "原始数据"
+    },
+    {
+      "time": "2024",
+      "name": "test5",
+      "progress": "原始数据"
+    },
+    {
+      "time": "2024",
+      "name": "test5",
+      "progress": "原始数据"
+    },
+    {
+      "time": "2024",
+      "name": "test5",
+      "progress": "原始数据"
+    },
+    {
+      "time": "2024",
+      "name": "test5",
+      "progress": "原始数据"
+    },
+    {
+      "time": "2024",
+      "name": "test5",
+      "progress": "原始数据"
+    },
+    {
+      "time": "2025",
+      "name": "test3",
+      "progress": "原始数据"
+    }]);
     const filteredData = ref([{
       "time": "2024",
       "name": "test2",
+      "progress": "原始数据"
+    },
+    {
+      "time": "2024",
+      "name": "test5",
+      "progress": "原始数据"
+    },
+    {
+      "time": "2024",
+      "name": "test5",
+      "progress": "原始数据"
+    },
+    {
+      "time": "2024",
+      "name": "test5",
+      "progress": "原始数据"
+    },
+    {
+      "time": "2024",
+      "name": "test5",
       "progress": "原始数据"
     },
     {
@@ -147,16 +161,14 @@ export default {
     }]);
 
     const handleItemClick = (item) => {
-      const value = ref([item.time, item.name]);
-      router.push({
-        path: '/detail',
-        query: {
-          // year: value.value[0],
-          // experimentName: value.value[1],
-          // value: JSON.stringify(value.value),
-          value: value.value,
-        },
-      });
+      if (!item.loading) {
+        router.push({
+          path: '/detail',
+          query: {
+            value: [item.time, item.name],
+          },
+        });
+      }
     };
 
     const fetchData = async () => {
@@ -178,43 +190,52 @@ export default {
       }
     };
 
-    const filterData = () => {
-      filteredData.value = historyData.value.filter((item) => {
-        const matchName =
-          !filters.value.experimentName ||
-          item.name.includes(filters.value.experimentName);
-        const matchDate =
-          !filters.value.dateRange.length ||
-          (item.time >= filters.value.dateRange[0] &&
-            item.time <= filters.value.dateRange[1]);
-        return matchName && matchDate;
-      });
-    };
+    const generate = async () => {
+      // 创建一个新数据对象，包含进度条信息和不可点击状态
+      const newItem = {
+        id: Date.now(), // 使用时间戳作为临时 ID
+        name: '新实验数据', // 你可以根据实际需求设置名字
+        progress: '正在生成...',
+        time: new Date().toISOString().split('T')[0], // 当前日期
+        clickable: false, // 初始化为不可点击状态
+      };
 
-    const resetFilters = async () => {
+      // 将新数据添加到历史数据列表的顶部
+      historyData.value.push(newItem);
+      filteredData.value = historyData.value;
+
       try {
-        await fetchData(); // 调用 fetchData 来刷新数据
+        // 调用后端的 stream_sensor_data 接口
+        const response = await axios.post('http://127.0.0.1:8000/data_management/stream_sensor_data/', {
+          // 根据接口要求传递参数
+          Year: '2024', // 传递年份参数
+          Exp_name: 'experiment_1', // 传递实验名称参数
+        });
+
+        // 如果请求成功，更新新数据的状态
+        if (response.status === 200 && response.data.status === 'streaming started') {
+          // 查找刚添加的这个新数据
+          const item = historyData.value.find(item => item.id === newItem.id);
+          if (item) {
+            // 更新其状态为可点击，并移除进度条信息
+            item.progress = '生成完成';
+            item.clickable = true;
+            filteredData.value = historyData.value;
+          }
+        }
       } catch (error) {
-        console.error('Error resetting filters:', error);
+        console.error('生成数据失败:', error);
+        // 可以添加错误处理逻辑，比如移除该条数据或显示错误信息
       }
     };
 
-    const changePassword = () => {
-      alert('密码修改功能');
-    };
 
-    const createExperiment = () => {
-      alert('新建实验功能');
-    };
-
-    const logout = () => {
-      router.push({
-        path: '/boat'
-      });
+    const resetFilters = async () => {
+      await fetchData();
     };
 
     onMounted(() => {
-      fetchData(); // 页面加载时调用 fetchData 获取数据
+      fetchData();
     });
 
     return {
@@ -222,23 +243,12 @@ export default {
       filters,
       historyData,
       filteredData,
-      fileInput,
-      expYear,
-      expName,
-      triggerFileInput,
-      handleFileUpload,
-      changePassword,
       handleItemClick,
-      createExperiment,
-      logout,
-      filterData,
+      generate,
       resetFilters,
     };
   },
 };
-
-
-
 </script>
 
 <style scoped>
@@ -315,7 +325,6 @@ export default {
   background-color: rgba(255, 255, 255);
   border-radius: 15px;
   padding: 2rem;
-  overflow-y: auto;
 }
 
 .filter-card {
@@ -324,7 +333,9 @@ export default {
 }
 
 .experiment-list {
+  width: 100%;
   margin-top: 20px;
+  overflow-y: auto;
 }
 
 .el-card {
