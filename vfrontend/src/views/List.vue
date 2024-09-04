@@ -57,7 +57,7 @@
         <h3>历史实验数据</h3>
         <el-row :gutter="20" class="experiment-list">
           <el-col :span="24" v-for="item in filteredData" :key="item.id">
-            <el-card :style="getCardStyle(item.progress)" @click="handleItemClick(item)">
+            <el-card @click="handleItemClick(item)">
               <h3>{{ item.name }}</h3>
               <p><strong>进度:</strong> {{ item.progress }}</p>
               <p><strong>时间:</strong> {{ item.time }}</p>
@@ -79,11 +79,12 @@ export default {
     Edit,
   },
   setup() {
+    const router = useRouter(); // 获取 router 实例
     const avatarImage = new URL('../assets/avatar.jpg', import.meta.url).href;
     const fileInput = ref(null);
     const expYear = ref('');
     const expName = ref('');
-    const router = useRouter();
+    
     const triggerFileInput = () => {
       fileInput.value.click();
     };
@@ -129,7 +130,21 @@ export default {
     });
 
     const historyData = ref([]);
-    const filteredData = ref([]);
+    const filteredData = ref([{
+      "time": "2024",
+      "name": "test2",
+      "progress": "原始数据"
+    },
+    {
+      "time": "2024",
+      "name": "test5",
+      "progress": "原始数据"
+    },
+    {
+      "time": "2025",
+      "name": "test3",
+      "progress": "原始数据"
+    }]);
 
     const handleItemClick = (item) => {
       const value = ref([item.time, item.name]);
