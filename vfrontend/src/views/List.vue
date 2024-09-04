@@ -73,7 +73,7 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { Edit } from '@element-plus/icons-vue';
-
+import { useRouter } from 'vue-router';
 export default {
   components: {
     Edit,
@@ -83,7 +83,7 @@ export default {
     const fileInput = ref(null);
     const expYear = ref('');
     const expName = ref('');
-
+    const router = useRouter();
     const triggerFileInput = () => {
       fileInput.value.click();
     };

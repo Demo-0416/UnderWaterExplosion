@@ -105,7 +105,7 @@ const handleLogin = async () => {
     if (res.data.code == 0) {
       
       ElMessage({type: 'success', message: '登录成功'})
-      router.push('/')
+      router.push('/list')
       
     } else {
       ElMessage.error(res.data.state)
