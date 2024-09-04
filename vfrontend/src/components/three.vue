@@ -6,7 +6,6 @@ import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader';
 import { Water } from 'three/examples/jsm/objects/Water';
 import { onMounted, ref, nextTick } from 'vue';
 import * as echarts from 'echarts';
-import { Chart } from 'chart.js';
 import axios from 'axios';
 import Papa from 'papaparse'; // 导入 PapaParse
 
