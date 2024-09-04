@@ -21,7 +21,7 @@
           <input type="text" v-model="expName" placeholder="输入实验名称" />
           <div @click="triggerFileInput">上传CSV文件</div>
         </div>
-        <div @click="logout">退出登录</div>
+        <div @click="logout">3D演示</div>
       </div>
     </div>
 
@@ -84,7 +84,7 @@ export default {
     const fileInput = ref(null);
     const expYear = ref('');
     const expName = ref('');
-    
+
     const triggerFileInput = () => {
       fileInput.value.click();
     };
@@ -104,7 +104,7 @@ export default {
             },
           });
 
-          if (response.data.code === '0') {
+          if (response.data.code === '200') {
             // 上传成功后刷新数据
             await fetchData();
             alert('CSV 文件上传成功，数据已刷新！');
@@ -206,7 +206,9 @@ export default {
     };
 
     const logout = () => {
-      alert('退出登录功能');
+      router.push({
+        path: '/boat'
+      });
     };
 
     onMounted(() => {
