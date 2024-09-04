@@ -104,7 +104,7 @@ export default {
             },
           });
 
-          if (response.data.code === '200') {
+          if (response.data.code === '0') {
             // 上传成功后刷新数据
             await fetchData();
             alert('CSV 文件上传成功，数据已刷新！');
@@ -149,7 +149,7 @@ export default {
     const handleItemClick = (item) => {
       const value = ref([item.time, item.name]);
       router.push({
-        path: '/',
+        path: '/detail',
         query: {
           year: value.value[0],
           experimentName: value.value[1],
