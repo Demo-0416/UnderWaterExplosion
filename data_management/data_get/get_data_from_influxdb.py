@@ -36,10 +36,10 @@ def data_get_ori_and_pre(year, exp_name, state):
             sensor_type = record['Type']
             position = record['Position']
             time_value_pair = [record['Time'], record['Value']]
-            sensor_data_entry = next((item for item in records[sensor_type] if item['SensorID'] == sensor_id), None)
+            sensor_data_entry = next((item for item in records[sensor_type] if item['SensorId'] == sensor_id), None)
             if not sensor_data_entry:
                 sensor_data_entry = {
-                    'SensorID': sensor_id,
+                    'SensorId': sensor_id,
                     'Type': sensor_type,
                     'Position': position,
                     'X-axis-name': 'Time',
@@ -69,7 +69,7 @@ def data_get_fix(year, exp_name, state):
             sensor_id = record['SensorID']
             sensor_type = record['Type']
             cur_fixture = {
-                'SensorID': sensor_id,
+                'SensorId': sensor_id,
                 'Mean': record['Mean'],
                 'Max': record['Max'],
                 'Min': record['Min'],
