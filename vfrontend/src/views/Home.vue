@@ -180,7 +180,7 @@ const options = [
     },]
   },
   {
-    value: 'option2',
+    value: '2023',
     label: '2023',
     children: [{
       value: 'test1',
@@ -204,7 +204,7 @@ const options = [
     },]
   },
   {
-    value: 'option3',
+    value: '2022',
     label: '2022',
     children: [{
       value: 'test1',
@@ -228,7 +228,7 @@ const options = [
     },]
   },
   {
-    value: 'option4',
+    value: '2021',
     label: '2021',
     children: [{
       value: 'test1',
@@ -343,7 +343,7 @@ const Ori_Strain_data = ref([]);
 const Ori_Strain_Charts = ref([]);
 
 
-//已处理数据
+//预处理数据
 const Acceleration_data = ref([]);
 const Acc_Charts = ref([]);
 
@@ -356,8 +356,18 @@ const Pressure_Charts = ref([]);
 const Strain_data = ref([]);
 const Strain_Charts = ref([]);
 
-//数据特征暂未提供
-const Feature_data = ref([]);
+//数据特征
+const Feature_Acceleration_data = ref([]);
+const Feature_Acc_Charts = ref([]);
+
+const Feature_Temperature_data = ref([]);
+const Feature_Temperature_Charts = ref([]);
+
+const Feature_Pressure_data = ref([]);
+const Feature_Pressure_Charts = ref([]);
+
+const Feature_Strain_data = ref([]);
+const Feature_Strain_Charts = ref([]);
 
 
 
@@ -469,7 +479,7 @@ watch(Ori_Acceleration_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.SensorId, // 这里设置图表名
             subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
@@ -536,7 +546,7 @@ watch(Ori_Pressure_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.SensorId, // 这里设置图表名
             subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
@@ -604,7 +614,7 @@ watch(Ori_Strain_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.SensorId, // 这里设置图表名
             subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
@@ -670,7 +680,7 @@ watch(Ori_Temperature_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.SensorId, // 这里设置图表名
             subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
@@ -739,7 +749,7 @@ watch(Acceleration_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.SensorId, // 这里设置图表名
             subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
@@ -806,7 +816,7 @@ watch(Pressure_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.SensorId, // 这里设置图表名
             subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
@@ -874,7 +884,7 @@ watch(Strain_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.SensorId, // 这里设置图表名
             subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
@@ -940,7 +950,7 @@ watch(Temperature_data, (newVal) => {
         id: sensor_data.SensorId,
         options: {
           title: {
-            text: 'SensorId '+sensor_data.Type, // 这里设置图表名
+            text: 'SensorId '+sensor_data.SensorId, // 这里设置图表名
             subtext: 'Position: '+sensor_data.Position,
             left: 'center', // 标题位置
             top: 20, // 标题距离顶部距离
