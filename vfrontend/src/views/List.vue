@@ -149,10 +149,12 @@ export default {
     const handleItemClick = (item) => {
       const value = ref([item.time, item.name]);
       router.push({
-        path: '/',
+        path: '/detail',
         query: {
-          year: value.value[0],
-          experimentName: value.value[1],
+          // year: value.value[0],
+          // experimentName: value.value[1],
+          // value: JSON.stringify(value.value),
+          value: value.value,
         },
       });
     };
