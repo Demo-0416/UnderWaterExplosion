@@ -1,5 +1,5 @@
 import pandas as pd
-from influxdb_client import InfluxDBClient, Point
+from influxdb_client import InfluxDBClient, Point, WriteOptions
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 from data_management.models import History
@@ -12,11 +12,12 @@ class DataSaver:
 
     def read_csv_and_write_to_influxdb(self, year, exp_name):
         client = InfluxDBClient(**settings)
-        write_api = client.write_api(write_options=SYNCHRONOUS)
+        write_api = client.write_api(write_options=WriteOptions(batch_size=1000))
         measurement = year + '_' + exp_name + '_ori'
         cur_csv_file_path = csv_file_path + year + "_" + exp_name + '_sensor_data.csv'
         # 读取 CSV 文件并将数据写入 InfluxDB
         df = pd.read_csv(cur_csv_file_path)
+        points = []
         for index, row in df.iterrows():
             point = Point(measurement)  # 替换为你的测量名称
             point = point.tag("SensorID", row['SensorID'])  # 添加 SensorID 作为标签
@@ -24,15 +25,18 @@ class DataSaver:
             point = point.field("Position", row['Position'])
             point = point.field("Value", row['Value'])
             point = point.field("Time", row['Time'])  # 添加时间戳
+            points.append(point)
 
-            # 写入 InfluxDB
-            write_api.write(bucket=settings['bucket'], org=settings['org'], record=point)
+        try:
+            write_api.write(bucket=settings['bucket'], org=settings['org'], record=points)
+            client.close()
+            msg = FollowExp().create_history(year, exp_name)
+            print('Successfully wrote ori_data to InfluxDB')
+            return msg
+        except Exception as e:
+            print(e)
 
-        # 关闭 InfluxDB 客户端
-        client.close()
-        # 生成一次新实验
-        msg = FollowExp().create_history(year, exp_name)
-        return msg
+
 
     # 将预处理后数据存入influxdb
     def save_pre_to_db(self, year, exp_name, records):
@@ -52,8 +56,9 @@ class DataSaver:
                         'Value': data_point['Value']
                     })
         client = InfluxDBClient(**settings)
-        write_api = client.write_api(write_options=SYNCHRONOUS)
+        write_api = client.write_api(write_options=WriteOptions(batch_size=1000))
         measurement = year + '_' + exp_name + '_pre'
+        points = []
         for record in all_records:
             point = Point(measurement)  # 替换为你的测量名称
             point = point.tag("SensorID", record['SensorID'])  # 添加 SensorID 作为标签
@@ -61,15 +66,22 @@ class DataSaver:
             point = point.field("Position", record['Position'])
             point = point.field("Value", record['Value'])
             point = point.field("Time", record['Time'])
+            points.append(point)
 
-            write_api.write(bucket=settings['bucket'], org=settings['org'], record=point)
-        client.close()
+        try:
+            write_api.write(bucket=settings['bucket'], org=settings['org'], record=points)
+            client.close()
+            print('Successfully wrote pre_data to InfluxDB')
+        except Exception as e:
+            print(e)
+
 
     def save_fix_to_db(self, year, exp_name, features):
         try:
             client = InfluxDBClient(**settings)
             write_api = client.write_api(write_options=SYNCHRONOUS)
             measurement = year + '_' + exp_name + '_fix'
+            points = []
             for key, records in features.items():
                 for record in records:
                     point = Point(measurement)
@@ -80,8 +92,10 @@ class DataSaver:
                     point = point.field("Min", record['Min'])
                     point = point.field("StdDev", record['StdDev'])
                     point = point.field("PeakToPeak", record['PeakToPeak'])
+                    points.append(point)
 
-                    write_api.write(bucket=settings['bucket'], org=settings['org'], record=point)
+            write_api.write(bucket=settings['bucket'], org=settings['org'], record=points)
+            print('Successfully wrote fix_data to InfluxDB')
             client.close()
         except Exception as e:
             print(e)
