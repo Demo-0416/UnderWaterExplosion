@@ -4,12 +4,12 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
-      name: 'home',
+      path: '/detail',
+      name: 'detail',
       component: () => import('@/views/Home.vue')
     },
     {
-      path: '/login',
+      path: '/',
       name: 'login',
       component: () => import('@/views/Login.vue')
     },
@@ -17,6 +17,10 @@ const router = createRouter({
       path: '/list',
       name: 'list',
       component: () => import('@/views/List.vue')
+    }, {
+      path: '/boat',
+      name: 'boat',
+      component: () => import('@/components/three.vue')
     }
   ]
 })

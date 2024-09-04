@@ -21,7 +21,7 @@
           <input type="text" v-model="expName" placeholder="输入实验名称" />
           <div @click="triggerFileInput">上传CSV文件</div>
         </div>
-        <div @click="logout">退出登录</div>
+        <div @click="logout">3D演示</div>
       </div>
     </div>
 
@@ -207,7 +207,9 @@ export default {
     };
 
     const logout = () => {
-      alert('退出登录功能');
+      router.push({
+        path: '/boat'
+      });
     };
 
     onMounted(() => {

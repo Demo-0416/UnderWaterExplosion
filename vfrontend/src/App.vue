@@ -10,6 +10,7 @@ import Boat from './components/three.vue'
 
 <template>
   <div class="laybox">
+    <!-- <boat></boat> -->
     <!-- <Main></Main> -->
     <!-- <User></User> -->
     <router-view></router-view>
