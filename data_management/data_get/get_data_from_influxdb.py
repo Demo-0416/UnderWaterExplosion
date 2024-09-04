@@ -2,69 +2,26 @@ from influxdb_client import InfluxDBClient
 from data_management.setting import settings
 
 
+def data_get(year, exp_name, state):
+    if state == "原始数据":
+        state = 'ori'
+        records = data_get_ori_and_pre(year, exp_name, state)
+        return records
+    elif state == "预处理数据":
+        state = 'pre'
+        records = data_get_ori_and_pre(year, exp_name, state)
+        return records
+    elif state == "特征提取":
+        state = 'fix'
+        records = data_get_fix(year, exp_name, state)
+        return records
 
 
-# bucket代填
-# def select_single_sensor_data(SensorID, measurement, start_time):
-#     query_value = """from(bucket: "")
-#     |> range(start: {})
-#     |> filter(fn: (r) => r["_measurement"] == "{}")
-#     |> filter(fn: (r) => r["SensorID"] == "{}")
-#     |> filter(fn: (r) => r["_field"] == "Value" or r["_field"] == "Time" or r["_field"] == "Position")
-#     |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
-#     """.format(start_time, measurement, SensorID)
-#     tables = query_api.query(query_value)
-#     member_list = []
-#     for table in tables:
-#         for record in table:
-#             member = {
-#                 "measurement": measurement,
-#                 "SensorID": SensorID,
-#                 "position": record['Position'],
-#                 "time": record['Time'],
-#                 "value": record['Value']
-#             }
-#             member_list.append(member)
-#     return member_list
-#
-#
-# # 获取同一类型的数据
-# def select_type_data(measurement, start_time):
-#     query = """from(bucket: "")
-#     |> range(start: {})
-#     |> filter(fn: (r) => r["_measurement"] == "{}")
-#     |> filter(fn: (r) => r["_field"] == "Value" or r["_field"] == "Time" or r["_field"] == "Position")
-#     |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
-#     """.format(start_time, measurement)
-#     tables = query_api.query(query)
-#     member_list = []
-#     for table in tables:
-#         for record in table:
-#             member = {
-#                 "measurement": measurement,
-#                 "SensorID": record['SensorID'],
-#                 "position": record['Position'],
-#                 "time": record['Time'],
-#                 "value": record['Value']
-#             }
-#             member_list.append(member)
-#     return member_list
-#
-#
-# # 获取所有数据
-# def select_all_data(start_time):
-#     measurement_list = []
-#     all_data_list = []
-#     for measurement in measurement_list:
-#         member_list = select_type_data(measurement, start_time)
-#         all_data_list.extend(member_list)
-#     return all_data_list
-
-
-def ori_data_get(year, exp_name):
+# 获取一次实验的原始数据
+def data_get_ori_and_pre(year, exp_name, state):
     client = InfluxDBClient(**settings)
     query_api = client.query_api()
-    measurement = year + '_' + exp_name + '_' + 'ori'
+    measurement = year + '_' + exp_name + '_' + state
     query = """from(bucket: "test1")
         |> range(start: 0)
         |> filter(fn: (r) => r["_measurement"] == "{}")
@@ -72,14 +29,14 @@ def ori_data_get(year, exp_name):
         |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
         """.format(measurement)
     tables = query_api.query(query)
-    ori_record = {'Acceleration': [], 'Strain': [], 'Temperature': [], 'Pressure': []}
+    records = {'Acceleration': [], 'Strain': [], 'Temperature': [], 'Pressure': []}
     for table in tables:
         for record in table:
             sensor_id = record['SensorID']
             sensor_type = record['Type']
             position = record['Position']
             time_value_pair = [record['Time'], record['Value']]
-            sensor_data_entry = next((item for item in ori_record[sensor_type] if item['SensorID'] == sensor_id), None)
+            sensor_data_entry = next((item for item in records[sensor_type] if item['SensorID'] == sensor_id), None)
             if not sensor_data_entry:
                 sensor_data_entry = {
                     'SensorID': sensor_id,
@@ -89,6 +46,36 @@ def ori_data_get(year, exp_name):
                     'Y-axis-name': 'Value',
                     'data': []
                 }
-                ori_record[sensor_type].append(sensor_data_entry)
+                records[sensor_type].append(sensor_data_entry)
             sensor_data_entry['data'].append(time_value_pair)
-    return ori_record
+    return records
+
+
+def data_get_fix(year, exp_name, state):
+    client = InfluxDBClient(**settings)
+    query_api = client.query_api()
+    measurement = year + '_' + exp_name + '_' + state
+    query = """from(bucket: "test1")
+            |> range(start: 0)
+            |> filter(fn: (r) => r["_measurement"] == "{}")
+            |> filter(fn: (r) => r["_field"] == "Mean" or r["_field"] == "Max" or r["_field"] == "Min" or
+            r["_field"] == "StdDev" or r["_field"] == "PeakToPeak") 
+            |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+            """.format(measurement)
+    tables = query_api.query(query)
+    records = {'Acceleration': [], 'Strain': [], 'Temperature': [], 'Pressure': []}
+    for table in tables:
+        for record in table:
+            sensor_id = record['SensorID']
+            sensor_type = record['Type']
+            cur_fixture = {
+                'SensorID': sensor_id,
+                'Mean': record['Mean'],
+                'Max': record['Max'],
+                'Min': record['Min'],
+                'StdDev': record['StdDev'],
+                'PeakToPeak': record['PeakToPeak'],
+            }
+            records[sensor_type].append(cur_fixture)
+    return records
+

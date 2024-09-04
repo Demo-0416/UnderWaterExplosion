@@ -1,9 +1,12 @@
 import json
 import threading
 import time
+import os
 import numpy as np
 from confluent_kafka import Producer
 import pandas as pd
+from data_management.setting import csv_file_path
+from data_management.data_input.file_uploader import DataSaver
 
 class DataSimulator:
     def __init__(self, params):
@@ -50,8 +53,8 @@ class DataSimulator:
         def delivery_report(err, msg):
             if err is not None:
                 print('Message delivery failed: {}'.format(err))
-            else:
-                print('Message delivered to {} [{}] {}'.format(msg.topic(), msg.partition(), msg.value()))
+            # else:
+            #     print('Message delivered to {} [{}] {}'.format(msg.topic(), msg.partition(), msg.value()))
 
         def stream_data():
             time_array = np.arange(0, explosion_duration, 0.01)  # 每个爆炸持续时间的时间数组
@@ -87,8 +90,14 @@ class DataSimulator:
 
             # 保存数据到 CSV 文件
             filename = f"{year}_{exp_name}_sensor_data.csv"
+            save_directory = csv_file_path
+            if not os.path.exists(save_directory):
+                os.makedirs(save_directory)
+            save_path = os.path.join(save_directory, filename)
             df = pd.DataFrame(records)
-            df.to_csv(filename, index=False)
+            df.to_csv(save_path, index=False)
             print(f"Data saved to {filename}")
+            DataSaver().read_csv_and_write_to_influxdb(year, exp_name)
+            print(f"Data saved to db")
 
         stream_data()

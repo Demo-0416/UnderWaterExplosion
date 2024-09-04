@@ -5,3 +5,4 @@ from django.db import models
 class History(models.Model):
     save_time = models.CharField(max_length=100)
     exp_name = models.CharField(max_length=100)
+    status = models.CharField(max_length=100, default="原始数据")

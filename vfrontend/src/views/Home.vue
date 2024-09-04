@@ -369,10 +369,8 @@ const Feature_data = ref([]);
 const fetchData = async () => {
   const order = getOrder(active.value);
   console.log(order);
-  const test_param = {
-    Year: value.value[0],
-    Exp_Name: value.value[1],
-  }
+
+
   console.log(test_param);
   try {
     for (const letter of order) {
@@ -380,42 +378,69 @@ const fetchData = async () => {
       switch (letter) {
         case 'A':
           try {
-            const response = await axios.get('http://127.0.0.1:8000/data_management/get_ori_data/', {
-              params: test_param
+            const ori_param = {
+              Year: value.value[0],
+              Exp_Name: value.value[1],
+              state: '原始数据',
+            }
+            const response = await axios.get('http://127.0.0.1:8000/data_management/get_data/', {
+              params: ori_param
             });
             if (response.data.code == 0) {
-            Ori_Acceleration_data.value = response.data.data.Acceleration;
-            Ori_Temperature_data.value = response.data.data.Temperature;
-            Ori_Pressure_data.value = response.data.data.Pressure;
-            Ori_Strain_data.value = response.data.data.Strain;
-            ElMessage.success('获取数据成功');
-            }else{
-              ElMessage.error(response.data.msg);
-            }  
+              Ori_Acceleration_data.value = response.data.data.Acceleration;
+              Ori_Temperature_data.value = response.data.data.Temperature;
+              Ori_Pressure_data.value = response.data.data.Pressure;
+              Ori_Strain_data.value = response.data.data.Strain;
+              ElMessage.success('获取数据成功');
+            } else {
+              ElMessage.error(response.data.message);
+            }
           } catch (error) {
             ElMessage.error(error);
           }
           break;
         case 'B':
           try {
-            const response = await axios.get('http://127.0.0.1:8000/data_management/get_cas_data/', {
-              params: test_param
+            const pre_param = {
+              Year: value.value[0],
+              Exp_Name: value.value[1],
+              state: '预处理数据',
+            }
+            const response = await axios.get('http://127.0.0.1:8000/data_management/get_data/', {
+              params: pre_param
             });
             if (response.data.code == 0) {
-            Acceleration_data.value = response.data.data.Acceleration;
-            Temperature_data.value = response.data.data.Temperature;
-            Pressure_data.value = response.data.data.Pressure;
-            Strain_data.value = response.data.data.Strain;
-            ElMessage.success('获取数据成功');
-            }else{
-              ElMessage.error(response.data.msg);
-            }   
+              Acceleration_data.value = response.data.data.Acceleration;
+              Temperature_data.value = response.data.data.Temperature;
+              Pressure_data.value = response.data.data.Pressure;
+              Strain_data.value = response.data.data.Strain;
+              ElMessage.success('获取数据成功');
+            } else {
+              ElMessage.error(response.data.message);
+            }
           } catch (error) {
             ElMessage.error(error);
           }
           break;
         case 'C':
-          console.log('暂未提供');
+        try {
+            const feature_param = {
+              Year: value.value[0],
+              Exp_Name: value.value[1],
+              state: '特征提取',
+            }
+            const response = await axios.get('http://127.0.0.1:8000/data_management/get_data/', {
+              params: feature_param
+            });
+            if (response.data.code == 0) {
+              console.log(response.data.data);
+              ElMessage.success('获取数据成功');
+            } else {
+              ElMessage.error(response.data.message);
+            }
+          } catch (error) {
+            ElMessage.error(error);
+          }
           break;
       }
     }

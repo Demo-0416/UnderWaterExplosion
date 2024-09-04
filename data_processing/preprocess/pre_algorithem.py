@@ -45,12 +45,12 @@ def fetch_data(consumer, max_messages=50000):
     
     message_count = 0
 
-    while message_count < max_messages:  # 确保循环终止条件明确
+    while message_count < max_messages:
         msg = consumer.poll(1.0)
-        if msg is None:  # 没有接收到消息
+        if msg is None:
             print("Waiting for new messages...")
             continue
-        if msg.error():  # 处理错误情况
+        if msg.error():
             if msg.error().code() == KafkaError._PARTITION_EOF:
                 print("End of partition reached.")
                 continue
@@ -75,39 +75,11 @@ def fetch_data(consumer, max_messages=50000):
             records[sensor_type].append(record)
             print(f"Fetched and processed record: {record}")
 
-        # 增加消息计数器
         message_count += 1
 
     print("Reached maximum message count or encountered an error, stopping consumption.")
     processed_records = process_records(records)
     return processed_records
-
-def generate_plots(records):
-    fig, axs = plt.subplots(2, 2, figsize=(15, 10))
-    sensor_types = ['Acceleration', 'Strain', 'Temperature', 'Pressure']
-    # 选择第一个和最后一个位置
-    positions_of_interest = {100, 1000}
-    colors = plt.cm.viridis(np.linspace(0, 1, len(positions_of_interest)))
-
-    for i, sensor_type in enumerate(sensor_types):
-        ax = axs[i // 2, i % 2]
-        sensor_data = records[sensor_type]
-        locations = set([record['Position'] for record in sensor_data if record['Position'] in positions_of_interest])
-        
-        for j, location in enumerate(locations):
-            location_data = [(record['Time'], record['Value']) for record in sensor_data if record['Position'] == location]
-            if location_data:
-                times, values = zip(*location_data)
-                ax.plot(times, values, label=f'Location {location}', color=colors[j])
-        
-        ax.set_title(sensor_type)
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Value')
-        ax.legend()
-        ax.grid(True)
-
-    plt.tight_layout()
-    return mpld3.fig_to_html(fig)
 
 def process_records(records):
     processed = {}
@@ -135,3 +107,29 @@ def process_records(records):
             sensor_data_entry['data'].append(time_value_pair)
 
     return processed
+def generate_plots(records):
+    fig, axs = plt.subplots(2, 2, figsize=(15, 10))
+    sensor_types = ['Acceleration', 'Strain', 'Temperature', 'Pressure']
+    # 选择第一个和最后一个位置
+    positions_of_interest = {100, 1000}
+    colors = plt.cm.viridis(np.linspace(0, 1, len(positions_of_interest)))
+
+    for i, sensor_type in enumerate(sensor_types):
+        ax = axs[i // 2, i % 2]
+        sensor_data = records[sensor_type]
+        locations = set([record['Position'] for record in sensor_data if record['Position'] in positions_of_interest])
+        
+        for j, location in enumerate(locations):
+            location_data = [(record['Time'], record['Value']) for record in sensor_data if record['Position'] == location]
+            if location_data:
+                times, values = zip(*location_data)
+                ax.plot(times, values, label=f'Location {location}', color=colors[j])
+        
+        ax.set_title(sensor_type)
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Value')
+        ax.legend()
+        ax.grid(True)
+
+    plt.tight_layout()
+    return mpld3.fig_to_html(fig)
