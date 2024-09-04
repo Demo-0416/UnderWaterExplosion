@@ -208,7 +208,7 @@ def save_file(file, year, exp_name):
     if not os.path.exists(save_directory):
         os.makedirs(save_directory)
 
-    new_filename = year + exp_name + "sensor_data.csv"  # 你可以根据需要修改文件名
+    new_filename = year + '_' + exp_name + "_sensor_data.csv"  # 你可以根据需要修改文件名
     save_path = os.path.join(save_directory, new_filename)
 
     # 创建一个文件系统存储对象
@@ -229,10 +229,10 @@ def create_new_exp(request):
     if request.method == 'POST':
         try:
             form = UploadFileForm(request.POST, request.FILES)
-            year = request.POST.get('Year')
-            exp_name = request.POST.get('Exp_Name')
             if form.is_valid():
                 new_file = request.FILES['file']
+                year = form.cleaned_data['Year']
+                exp_name = form.cleaned_data['Exp_Name']
                 file_path = save_file(new_file, year, exp_name)
                 msg = '文件上传成功,保存为{}'.format(file_path)
                 FollowExp().create_history(year, exp_name)

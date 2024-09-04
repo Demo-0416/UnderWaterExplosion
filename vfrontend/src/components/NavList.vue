@@ -11,35 +11,54 @@
             @click.stop="handleSubMenuCheck1" > 
             <el-icon class="my-icon"><FolderOpened /></el-icon><span>温度</span></el-checkbox> 
           </template>
-          <el-menu-item index="1-1"><el-checkbox v-model="checked1Charts[0]" size="large" @change="funk"><el-icon><DocumentRemove /></el-icon>峰值</el-checkbox></el-menu-item>
+          <el-menu-item index="1-1"><el-checkbox v-model="checked1Charts[0]" size="large"><el-icon><DocumentRemove /></el-icon>均 值</el-checkbox></el-menu-item>
           <el-menu-item index="1-2"><el-checkbox v-model="checked1Charts[1]" size="large"><el-icon><DocumentRemove /></el-icon>最小值</el-checkbox></el-menu-item>
+          <el-menu-item index="1-3"><el-checkbox v-model="checked1Charts[2]" size="large"><el-icon><DocumentRemove /></el-icon>最大值</el-checkbox></el-menu-item>
+          <el-menu-item index="1-4"><el-checkbox v-model="checked1Charts[3]" size="large"><el-icon><DocumentRemove /></el-icon>标准偏差</el-checkbox></el-menu-item>
+          <el-menu-item index="1-5"><el-checkbox v-model="checked1Charts[4]" size="large"><el-icon><DocumentRemove /></el-icon>峰值</el-checkbox></el-menu-item>
+    
         </el-sub-menu>
         <el-sub-menu index="2">
           <template #title>
             <el-checkbox v-model="dirchecked2" size="large" @click.stop="handleSubMenuCheck2"> <el-icon class="my-icon"><FolderOpened /></el-icon>
               <span>自由场压力</span></el-checkbox>
           </template>
-          <el-menu-item index="2-1"><el-checkbox v-model="checked2Charts[0]" size="large"><el-icon><DocumentRemove /></el-icon>峰值</el-checkbox></el-menu-item>
+          <!-- <el-menu-item index="2-1"><el-checkbox v-model="checked2Charts[0]" size="large"><el-icon><DocumentRemove /></el-icon>峰值</el-checkbox></el-menu-item>
           <el-menu-item index="2-2"><el-checkbox v-model="checked2Charts[1]" size="large"><el-icon><DocumentRemove /></el-icon>时间常数</el-checkbox></el-menu-item>
           <el-menu-item index="2-3"><el-checkbox v-model="checked2Charts[2]" size="large"><el-icon><DocumentRemove /></el-icon>比冲击波能</el-checkbox></el-menu-item>
-          <el-menu-item index="2-4"><el-checkbox v-model="checked2Charts[3]" size="large"><el-icon><DocumentRemove /></el-icon>比气泡能</el-checkbox></el-menu-item>
+          <el-menu-item index="2-4"><el-checkbox v-model="checked2Charts[3]" size="large"><el-icon><DocumentRemove /></el-icon>比气泡能</el-checkbox></el-menu-item> -->
+          <el-menu-item index="2-1"><el-checkbox v-model="checked1Charts[0]" size="large"><el-icon><DocumentRemove /></el-icon>均 值</el-checkbox></el-menu-item>
+          <el-menu-item index="2-2"><el-checkbox v-model="checked1Charts[1]" size="large"><el-icon><DocumentRemove /></el-icon>最小值</el-checkbox></el-menu-item>
+          <el-menu-item index="2-3"><el-checkbox v-model="checked1Charts[2]" size="large"><el-icon><DocumentRemove /></el-icon>最大值</el-checkbox></el-menu-item>
+          <el-menu-item index="2-4"><el-checkbox v-model="checked1Charts[3]" size="large"><el-icon><DocumentRemove /></el-icon>标准偏差</el-checkbox></el-menu-item>
+          <el-menu-item index="2-5"><el-checkbox v-model="checked1Charts[4]" size="large"><el-icon><DocumentRemove /></el-icon>峰值</el-checkbox></el-menu-item>
         </el-sub-menu>
         <el-sub-menu index="3">
           <template #title>
             <el-checkbox v-model="dirchecked3" size="large" @click.stop="handleSubMenuCheck3"> <el-icon class="my-icon"><FolderOpened /></el-icon>
               <span>应变数据</span></el-checkbox>
           </template>
-          <el-menu-item index="3-1"><el-checkbox v-model="checked3Charts[0]" size="large"><el-icon><DocumentRemove /></el-icon>塑性应变值</el-checkbox></el-menu-item>
+          <!-- <el-menu-item index="3-1"><el-checkbox v-model="checked3Charts[0]" size="large"><el-icon><DocumentRemove /></el-icon>塑性应变值</el-checkbox></el-menu-item>
           <el-menu-item index="3-2"><el-checkbox v-model="checked3Charts[1]" size="large"><el-icon><DocumentRemove /></el-icon>峰值</el-checkbox></el-menu-item>
-          <el-menu-item index="3-3"><el-checkbox v-model="checked3Charts[2]" size="large"><el-icon><DocumentRemove /></el-icon>最大值</el-checkbox></el-menu-item>
+          <el-menu-item index="3-3"><el-checkbox v-model="checked3Charts[2]" size="large"><el-icon><DocumentRemove /></el-icon>最大值</el-checkbox></el-menu-item> -->
+          <el-menu-item index="3-1"><el-checkbox v-model="checked1Charts[0]" size="large"><el-icon><DocumentRemove /></el-icon>均 值</el-checkbox></el-menu-item>
+          <el-menu-item index="3-2"><el-checkbox v-model="checked1Charts[1]" size="large"><el-icon><DocumentRemove /></el-icon>最小值</el-checkbox></el-menu-item>
+          <el-menu-item index="3-3"><el-checkbox v-model="checked1Charts[2]" size="large"><el-icon><DocumentRemove /></el-icon>最大值</el-checkbox></el-menu-item>
+          <el-menu-item index="3-4"><el-checkbox v-model="checked1Charts[3]" size="large"><el-icon><DocumentRemove /></el-icon>标准偏差</el-checkbox></el-menu-item>
+          <el-menu-item index="3-5"><el-checkbox v-model="checked1Charts[4]" size="large"><el-icon><DocumentRemove /></el-icon>峰值</el-checkbox></el-menu-item>
         </el-sub-menu>
         <el-sub-menu index="4">
           <template #title>
             <el-checkbox v-model="dirchecked4" size="large" @click.stop="handleSubMenuCheck4"> <el-icon class="my-icon"><FolderOpened /></el-icon>
               <span>加速度数据</span></el-checkbox>
           </template>
-          <el-menu-item index="4-1"><el-checkbox v-model="checked4Charts[0]" size="large"><el-icon><DocumentRemove /></el-icon>统计值计算</el-checkbox></el-menu-item>
-          <el-menu-item index="4-2"><el-checkbox v-model="checked4Charts[1]" size="large"><el-icon><DocumentRemove /></el-icon>冲击值计算</el-checkbox></el-menu-item>
+          <!-- <el-menu-item index="4-1"><el-checkbox v-model="checked4Charts[0]" size="large"><el-icon><DocumentRemove /></el-icon>统计值计算</el-checkbox></el-menu-item>
+          <el-menu-item index="4-2"><el-checkbox v-model="checked4Charts[1]" size="large"><el-icon><DocumentRemove /></el-icon>冲击值计算</el-checkbox></el-menu-item> -->
+          <el-menu-item index="1-1"><el-checkbox v-model="checked1Charts[0]" size="large"><el-icon><DocumentRemove /></el-icon>均 值</el-checkbox></el-menu-item>
+          <el-menu-item index="1-2"><el-checkbox v-model="checked1Charts[1]" size="large"><el-icon><DocumentRemove /></el-icon>最小值</el-checkbox></el-menu-item>
+          <el-menu-item index="1-3"><el-checkbox v-model="checked1Charts[2]" size="large"><el-icon><DocumentRemove /></el-icon>最大值</el-checkbox></el-menu-item>
+          <el-menu-item index="1-4"><el-checkbox v-model="checked1Charts[3]" size="large"><el-icon><DocumentRemove /></el-icon>标准偏差</el-checkbox></el-menu-item>
+          <el-menu-item index="1-5"><el-checkbox v-model="checked1Charts[4]" size="large"><el-icon><DocumentRemove /></el-icon>峰值</el-checkbox></el-menu-item>
         </el-sub-menu>
        
       </el-menu>
@@ -60,10 +79,10 @@ const dirchecked2 = ref(true)
 const dirchecked3 = ref(true)
 const dirchecked4 = ref(true)
 
-const checked1Charts =reactive([true,true])
-const checked2Charts =reactive([true,true,true,true,])
-const checked3Charts =reactive([true,true,true,true,])
-const checked4Charts =reactive([true,true,true,true,])
+const checked1Charts =reactive([true,true,true,true,true])
+const checked2Charts =reactive([true,true,true,true,true])
+const checked3Charts =reactive([true,true,true,true,true])
+const checked4Charts =reactive([true,true,true,true,true])
 
 const handleOpen = (key, keyPath) => {
   // console.log(key, keyPath);

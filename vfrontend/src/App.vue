@@ -5,7 +5,7 @@ import List from './views/List.vue';
 import Login from './views/Login.vue';
 import Main from './components/Main.vue';
 import User from './components/userInfo.vue'
-import Boat from './components/three.vue'
+// import Boat from './components/three.vue'
 </script>
 
 <template>

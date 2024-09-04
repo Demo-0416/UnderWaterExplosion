@@ -74,7 +74,6 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { Edit } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
-
 export default {
   components: {
     Edit,
@@ -105,7 +104,7 @@ export default {
             },
           });
 
-          if (response.data.code === '0') {
+          if (response.data.code === '200') {
             // 上传成功后刷新数据
             await fetchData();
             alert('CSV 文件上传成功，数据已刷新！');
