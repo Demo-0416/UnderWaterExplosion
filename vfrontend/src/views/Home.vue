@@ -122,8 +122,10 @@ import { ElMessage } from 'element-plus';
 import MyChart from '@/components/Mychart.vue';
 import * as echarts from 'echarts';
 import axios from 'axios';
+import { useRoute } from 'vue-router';
 
-
+const route = useRoute();
+const test_param = route.query.value;
 const imgsrc = ref(blue3)
 const fit = ref('contain')
 const dialogVisible = ref(true)
@@ -153,7 +155,8 @@ const updateSelect4Charts = (checked4Charts) => {
   dir4charts.value = checked4Charts.every(Boolean);
 }
 
-const value = ref(['2024', 'test2']);
+const value = ref(test_param);
+
 const options = [
   {
     value: '2024',

@@ -151,8 +151,10 @@ export default {
       router.push({
         path: '/detail',
         query: {
-          year: value.value[0],
-          experimentName: value.value[1],
+          // year: value.value[0],
+          // experimentName: value.value[1],
+          // value: JSON.stringify(value.value),
+          value: value.value,
         },
       });
     };
