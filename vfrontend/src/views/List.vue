@@ -11,15 +11,10 @@
       <div class="avatar_container">
         <img :src="userInfo.avatar" alt="avatar" class="avatar" />
       </div>
-      <div class="info">
-        用户名: {{ userInfo.username }}
-      </div>
+      <div class="info">用户名: {{ userInfo.username }}</div>
       <div class="operation">
-        <div>
-          <input type="file" @change="handleFileUpload" accept=".csv" style="display: none;" ref="fileInput" />
-          <input type="text" v-model="expYear" placeholder="输入年份" />
-          <input type="text" v-model="expName" placeholder="输入实验名称" />
-          <div @click="triggerFileInput">上传CSV文件</div>
+        <div @click="openGenerateDialog" :class="{ disabled: generating }">
+          生成数据
         </div>
         <div @click="logout">3D演示</div>
       </div>
@@ -27,19 +22,27 @@
 
     <!-- 历史实验数据 -->
     <div class="history">
-      <!-- 筛选器 -->
       <el-card class="filter-card">
         <el-form :model="filters" label-width="100px">
           <el-row :gutter="20">
             <el-col :span="8">
               <el-form-item label="实验名称">
-                <el-input v-model="filters.experimentName" placeholder="请输入实验名称"></el-input>
+                <el-input
+                  v-model="filters.experimentName"
+                  placeholder="请输入实验名称"
+                ></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="8">
               <el-form-item label="实验日期">
-                <el-date-picker v-model="filters.dateRange" type="daterange" range-separator="至" start-placeholder="开始"
-                  end-placeholder="结束" format="YYYY-MM-DD" />
+                <el-date-picker
+                  v-model="filters.dateRange"
+                  type="daterange"
+                  range-separator="至"
+                  start-placeholder="开始"
+                  end-placeholder="结束"
+                  format="YYYY-MM-DD"
+                />
               </el-form-item>
             </el-col>
             <el-col :span="8">
@@ -53,129 +56,250 @@
       </el-card>
 
       <!-- 历史实验数据时间轴 -->
-      <el-card>
+      <el-card style="padding-bottom: 20px">
         <h3>历史实验数据</h3>
-        <el-row :gutter="20" class="experiment-list">
-          <el-col :span="24" v-for="item in filteredData" :key="item.id">
-            <el-card @click="handleItemClick(item)">
-              <h3>{{ item.name }}</h3>
-              <p><strong>进度:</strong> {{ item.progress }}</p>
-              <p><strong>时间:</strong> {{ item.time }}</p>
-            </el-card>
-          </el-col>
-        </el-row>
+        <div style="max-height: 50vh; overflow-y: auto">
+          <el-row :gutter="20" class="experiment-list">
+            <el-col
+              :span="24"
+              v-for="(item, index) in filteredData.slice().reverse()"
+              :key="item.id"
+            >
+              <el-card
+                :class="{ clickable: canClick(item, index) }"
+                @click="canClick(item, index) ? handleItemClick(item) : null"
+              >
+                <h3>{{ item.name }}</h3>
+                <p><strong>进度:</strong> {{ item.progress }}</p>
+                <p><strong>时间:</strong> {{ item.time }}</p>
+                <el-button
+                  v-if="isLastOri(item, index)"
+                  @click="openPreprocessDialog(item)"
+                  >进行预处理</el-button
+                >
+              </el-card>
+            </el-col>
+          </el-row>
+        </div>
       </el-card>
     </div>
+
+    <!-- 生成数据 Dialog -->
+    <el-dialog v-model="generateDialogVisible" title="生成数据" width="30%">
+      <el-form :model="newData">
+        <el-form-item label="实验名称">
+          <el-input
+            v-model="newData.name"
+            placeholder="请输入实验名称"
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="实验年份">
+          <el-input
+            v-model="newData.year"
+            placeholder="请输入实验年份"
+          ></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="generateDialogVisible = false">取消</el-button>
+        <el-button
+          v-loading.fullscreen.lock="fullscreenLoading"
+          type="primary"
+          @click="generate"
+          >确认</el-button
+        >
+      </template>
+    </el-dialog>
+
+    <!-- 预处理 Dialog -->
+    <el-dialog
+      v-model="preprocessDialogVisible"
+      title="选择预处理方式"
+      width="30%"
+    >
+      <el-radio-group v-model="selectedPreprocess">
+        <el-radio :label="1">Butterworth滤波器</el-radio>
+        <el-radio :label="2">使用移动平均滤波器</el-radio>
+        <el-radio :label="3">使用卡尔曼滤波器</el-radio>
+        <el-radio :label="4">使用小波变换</el-radio>
+      </el-radio-group>
+      <template #footer>
+        <el-button @click="preprocessDialogVisible = false">取消</el-button>
+        <el-button
+          v-loading.fullscreen.lock="fullscreenLoading"
+          type="primary"
+          @click="preprocess"
+          >确认</el-button
+        >
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
-import { Edit } from '@element-plus/icons-vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from "vue";
+import axios from "axios";
+import { Edit } from "@element-plus/icons-vue";
+import { useRouter } from "vue-router";
+import { ElMessage, ElLoading } from "element-plus";
+
 export default {
   components: {
     Edit,
   },
   setup() {
-    const router = useRouter(); // 获取 router 实例
-    const avatarImage = new URL('../assets/avatar.jpg', import.meta.url).href;
-    const fileInput = ref(null);
-    const expYear = ref('');
-    const expName = ref('');
-
-    const triggerFileInput = () => {
-      fileInput.value.click();
-    };
-
-    const handleFileUpload = async (event) => {
-      const file = event.target.files[0];
-      if (file && file.type === 'text/csv') {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('year', expYear.value);
-        formData.append('exp_name', expName.value);
-
-        try {
-          const response = await axios.post('http://127.0.0.1:8000/data_management/create_new_exp/', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-
-          if (response.data.code === '200') {
-            // 上传成功后刷新数据
-            await fetchData();
-            alert('CSV 文件上传成功，数据已刷新！');
-          } else {
-            alert('上传失败，请检查输入内容并重试。');
-          }
-        } catch (error) {
-          console.error('上传失败:', error);
-          alert('CSV 文件上传失败，请重试。');
-        }
-      } else {
-        alert('请上传有效的 CSV 文件');
-      }
-    };
+    const fullscreenLoading = ref(false);
+    const router = useRouter();
     const userInfo = ref({
-      avatar: avatarImage,
-      username: 'kiarkira',
+      avatar: new URL("../assets/avatar.jpg", import.meta.url).href,
+      username: "kiarkira",
     });
 
     const filters = ref({
-      experimentName: '',
+      experimentName: "",
       dateRange: [],
     });
 
     const historyData = ref([]);
-    const filteredData = ref([{
-      "time": "2024",
-      "name": "test2",
-      "progress": "原始数据"
-    },
-    {
-      "time": "2024",
-      "name": "test5",
-      "progress": "原始数据"
-    },
-    {
-      "time": "2025",
-      "name": "test3",
-      "progress": "原始数据"
-    }]);
+    const filteredData = ref([]);
 
-    const handleItemClick = (item) => {
-      const value = ref([item.time, item.name]);
-      router.push({
-        path: '/detail',
-        query: {
-          // year: value.value[0],
-          // experimentName: value.value[1],
-          // value: JSON.stringify(value.value),
-          value: value.value,
-        },
-      });
-    };
+    const generating = ref(false);
+
+    // 生成数据 Dialog
+    const generateDialogVisible = ref(false);
+    const newData = ref({
+      name: "",
+      year: "",
+    });
+
+    // 预处理 Dialog
+    const preprocessDialogVisible = ref(false);
+    const selectedPreprocess = ref(null);
+    const selectedItem = ref(null); // 当前选择预处理的实验
 
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/data_management/get_history/');
-        if (response.data.code === '0') {
-          historyData.value = response.data.data.map(item => ({
-            id: item.exp_name, // 根据实际需要设置合适的 id
+        const response = await axios.get(
+          "http://127.0.0.1:8000/data_management/get_history/"
+        );
+        if (response.data.code === "0") {
+          historyData.value = response.data.data.map((item) => ({
+            id: item.exp_name,
             name: item.exp_name,
             progress: item.status,
-            time: item.year, // 这里假设 year 是时间字段
+            time: item.year,
           }));
           filteredData.value = historyData.value;
         } else {
-          console.error('Failed to fetch history data');
+          console.error("Failed to fetch history data");
         }
       } catch (error) {
-        console.error('Error fetching history data:', error);
+        console.error("Error fetching history data:", error);
       }
+    };
+
+    const openGenerateDialog = () => {
+      console.log("click!");
+      generateDialogVisible.value = true;
+    };
+
+    const generate = async () => {
+      if (!newData.value.name || !newData.value.year) {
+        return;
+      }
+
+      generating.value = true;
+      fullscreenLoading.value = true;
+
+      try {
+        const response = await axios.post(
+          "http://127.0.0.1:8000/data_management/stream_sensor_data/",
+          {
+            Exp_name: newData.value.name,
+            Year: newData.value.year,
+          }
+        );
+
+        if (response.status === 200) {
+          generateDialogVisible.value = false;
+          fullscreenLoading.value = false;
+          await fetchData();
+          ElMessage.success("数据生成成功");
+        } else {
+          console.error("Failed to generate data");
+          ElMessage.error(
+            `生成数据失败: ${response.data.message || "未知错误"}`
+          );
+        }
+      } catch (error) {
+        console.error("Error generating data:", error);
+        ElMessage.error(`生成数据错误: ${error.message}`);
+      } finally {
+        generating.value = false;
+        fullscreenLoading.value = false;
+      }
+    };
+
+    const canClick = (item, index) => {
+      if (item.progress !== "ori") {
+        return true;
+      }
+      return false;
+    };
+
+    const isLastOri = (item, index) => {
+      const lastOriIndex = filteredData.value
+        .slice()
+        .reverse()
+        .findIndex((item) => item.progress === "ori");
+      return index === lastOriIndex;
+    };
+
+    const openPreprocessDialog = (item) => {
+      selectedItem.value = item;
+      preprocessDialogVisible.value = true;
+    };
+
+    const preprocess = async () => {
+      if (!selectedPreprocess.value) {
+        ElMessage.error("请选择预处理方法");
+        return;
+      }
+      fullscreenLoading.value = true;
+      try {
+        const response = await axios.post(
+          "http://127.0.0.1:8000/data_process/consume_sensor_data/",
+          {
+            Exp_name: selectedItem.value.name,
+            Year: selectedItem.value.time,
+            Code: selectedPreprocess.value,
+          }
+        );
+
+        if (response.status === 200) {
+          preprocessDialogVisible.value = false;
+          fullscreenLoading.value = false;
+          await fetchData();
+          ElMessage.success("预处理成功");
+        } else {
+          console.error("Failed to preprocess data");
+          ElMessage.error(`预处理失败: ${response.data.message || "未知错误"}`);
+        }
+      } catch (error) {
+        console.error("Error preprocessing data:", error);
+        ElMessage.error(`预处理错误: ${error.message}`);
+      } finally {
+        fullscreenLoading.value = false;
+      }
+    };
+
+    const handleItemClick = (item) => {
+      router.push({
+        path: "/detail",
+        query: {
+          value: [item.time, item.name],
+        },
+      });
     };
 
     const filterData = () => {
@@ -183,62 +307,47 @@ export default {
         const matchName =
           !filters.value.experimentName ||
           item.name.includes(filters.value.experimentName);
+
         const matchDate =
           !filters.value.dateRange.length ||
-          (item.time >= filters.value.dateRange[0] &&
-            item.time <= filters.value.dateRange[1]);
+          (new Date(item.time) >= new Date(filters.value.dateRange[0]) &&
+            new Date(item.time) <= new Date(filters.value.dateRange[1]));
+
         return matchName && matchDate;
       });
     };
 
     const resetFilters = async () => {
-      try {
-        await fetchData(); // 调用 fetchData 来刷新数据
-      } catch (error) {
-        console.error('Error resetting filters:', error);
-      }
-    };
-
-    const changePassword = () => {
-      alert('密码修改功能');
-    };
-
-    const createExperiment = () => {
-      alert('新建实验功能');
-    };
-
-    const logout = () => {
-      router.push({
-        path: '/boat'
-      });
+      await fetchData();
     };
 
     onMounted(() => {
-      fetchData(); // 页面加载时调用 fetchData 获取数据
+      fetchData();
     });
 
     return {
+      fullscreenLoading,
       userInfo,
       filters,
       historyData,
       filteredData,
-      fileInput,
-      expYear,
-      expName,
-      triggerFileInput,
-      handleFileUpload,
-      changePassword,
+      generateDialogVisible,
+      preprocessDialogVisible,
+      newData,
+      selectedPreprocess,
+      generate,
+      preprocess,
+      canClick,
+      isLastOri,
+      openGenerateDialog,
+      openPreprocessDialog,
       handleItemClick,
-      createExperiment,
-      logout,
       filterData,
       resetFilters,
+      generating,
     };
   },
 };
-
-
-
 </script>
 
 <style scoped>
@@ -247,7 +356,7 @@ export default {
   justify-content: space-between;
   width: 100vw;
   height: 100vh;
-  background: url('../assets/star.jpg') no-repeat center center;
+  background: url("../assets/star.jpg") no-repeat center center;
   background-size: cover;
 }
 
@@ -315,7 +424,6 @@ export default {
   background-color: rgba(255, 255, 255);
   border-radius: 15px;
   padding: 2rem;
-  overflow-y: auto;
 }
 
 .filter-card {
@@ -324,11 +432,22 @@ export default {
 }
 
 .experiment-list {
+  width: 100%;
   margin-top: 20px;
+  overflow-y: auto;
 }
 
 .el-card {
   padding: 20px;
   border-radius: 10px;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
 }
 </style>
