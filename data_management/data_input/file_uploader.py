@@ -107,10 +107,26 @@ class DataSaver:
 
 # 生成或修改history内容用于跟踪每一次实验的状态
 class FollowExp:
-    # 新增一次实验记录
-    def create_history(self, year, exp_name):
+
+    def print_all_history(self):
         try:
-            new_history = models.History(save_time=year, exp_name=exp_name)
+            # 查询 History 模型的所有记录
+            all_records = models.History.objects.all()
+            
+            # 如果有数据，逐条打印
+            if all_records:
+                for record in all_records:
+                    print(f"Year: {record.save_time}, Experiment Name: {record.exp_name}, Status: {record.status}")
+            else:
+                print("数据库中没有记录。")
+        except Exception as e:
+            print(f"发生错误: {str(e)}")
+
+
+    # 新增一次实验记录
+    def create_history(self, year, exp_name,status):
+        try:
+            new_history = models.History(save_time=year, exp_name=exp_name, status=status)
             new_history.save()
             msg = "新实验生成成功"
             return msg
@@ -120,15 +136,18 @@ class FollowExp:
     # 修改一次实验的状态从“原始数据”到“预处理后数据”
     def change_state_to_pre(self, year, exp_name):
         try:
-            count = History.objects.filter(save_time=year, exp_name=exp_name).update(status='预处理后数据')
+            count = History.objects.filter(save_time=year, exp_name=exp_name).update(status='pre')
             if count == 0:
                 msg = "更新状态失败，未查询到该实验记录"
+                print(msg)
                 return msg
             elif count == 1:
                 msg = "更新成功"
+                print(msg)
                 return msg
             else:
                 msg = "发生错误，存在多项同名实验记录"
+                print(msg)
                 return msg
         except Exception as e:
             return str(e)

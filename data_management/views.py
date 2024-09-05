@@ -182,8 +182,9 @@ def get_data(request):
 
 # 返回历史实验的标记
 def get_history(request):
-    if request.method == "GET":
-        try:
+    if request.method == "GET": 
+        try: 
+            FollowExp().print_all_history()
             history_list = History.objects.all()
             print(history_list)
             json_list = json.loads(json.dumps([{
@@ -191,7 +192,7 @@ def get_history(request):
                 'exp_name': item.exp_name,
                 'status': item.status
             } for item in history_list]))
-
+           
             return JsonResponse({'code': '0', 'data': json_list})
         except Exception as e:
             return JsonResponse({'code': '1', 'message': str(e)})
