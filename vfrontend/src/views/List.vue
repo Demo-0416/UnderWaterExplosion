@@ -27,13 +27,22 @@
           <el-row :gutter="20">
             <el-col :span="8">
               <el-form-item label="实验名称">
-                <el-input v-model="filters.experimentName" placeholder="请输入实验名称"></el-input>
+                <el-input
+                  v-model="filters.experimentName"
+                  placeholder="请输入实验名称"
+                ></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="8">
               <el-form-item label="实验日期">
-                <el-date-picker v-model="filters.dateRange" type="daterange" range-separator="至" start-placeholder="开始"
-                  end-placeholder="结束" format="YYYY-MM-DD" />
+                <el-date-picker
+                  v-model="filters.dateRange"
+                  type="daterange"
+                  range-separator="至"
+                  start-placeholder="开始"
+                  end-placeholder="结束"
+                  format="YYYY-MM-DD"
+                />
               </el-form-item>
             </el-col>
             <el-col :span="8">
@@ -51,13 +60,23 @@
         <h3>历史实验数据</h3>
         <div style="max-height: 50vh; overflow-y: auto">
           <el-row :gutter="20" class="experiment-list">
-            <el-col :span="24" v-for="(item, index) in filteredData.slice().reverse()" :key="item.id">
-              <el-card :class="{ clickable: canClick(item, index) }"
-                @click="canClick(item, index) ? handleItemClick(item) : null">
+            <el-col
+              :span="24"
+              v-for="(item, index) in filteredData.slice().reverse()"
+              :key="item.id"
+            >
+              <el-card
+                :class="{ clickable: canClick(item, index) }"
+                @click="canClick(item, index) ? handleItemClick(item) : null"
+              >
                 <h3>{{ item.name }}</h3>
                 <p><strong>进度:</strong> {{ item.progress }}</p>
                 <p><strong>时间:</strong> {{ item.time }}</p>
-                <el-button v-if="isLastOri(item, index)" @click="openPreprocessDialog(item)">进行预处理</el-button>
+                <el-button
+                  v-if="isLastOri(item, index)"
+                  @click="openPreprocessDialog(item)"
+                  >进行预处理</el-button
+                >
               </el-card>
             </el-col>
           </el-row>
@@ -69,29 +88,49 @@
     <el-dialog v-model="generateDialogVisible" title="生成数据" width="30%">
       <el-form :model="newData">
         <el-form-item label="实验名称">
-          <el-input v-model="newData.name" placeholder="请输入实验名称"></el-input>
+          <el-input
+            v-model="newData.name"
+            placeholder="请输入实验名称"
+          ></el-input>
         </el-form-item>
         <el-form-item label="实验年份">
-          <el-input v-model="newData.year" placeholder="请输入实验年份"></el-input>
+          <el-input
+            v-model="newData.year"
+            placeholder="请输入实验年份"
+          ></el-input>
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="generateDialogVisible = false">取消</el-button>
-        <el-button v-loading.fullscreen.lock="fullscreenLoading" type="primary" @click="generate">确认</el-button>
+        <el-button
+          v-loading.fullscreen.lock="fullscreenLoading"
+          type="primary"
+          @click="generate"
+          >确认</el-button
+        >
       </template>
     </el-dialog>
 
     <!-- 预处理 Dialog -->
-    <el-dialog v-model="preprocessDialogVisible" title="选择预处理方式" width="30%">
+    <el-dialog
+      v-model="preprocessDialogVisible"
+      title="选择预处理方式"
+      width="30%"
+    >
       <el-radio-group v-model="selectedPreprocess">
-        <el-radio :label="1">预处理方法 1</el-radio>
-        <el-radio :label="2">预处理方法 2</el-radio>
-        <el-radio :label="3">预处理方法 3</el-radio>
-        <el-radio :label="4">预处理方法 4</el-radio>
+        <el-radio :label="1">Butterworth滤波器</el-radio>
+        <el-radio :label="2">使用移动平均滤波器</el-radio>
+        <el-radio :label="3">使用卡尔曼滤波器</el-radio>
+        <el-radio :label="4">使用小波变换</el-radio>
       </el-radio-group>
       <template #footer>
         <el-button @click="preprocessDialogVisible = false">取消</el-button>
-        <el-button v-loading.fullscreen.lock="fullscreenLoading" type="primary" @click="preprocess">确认</el-button>
+        <el-button
+          v-loading.fullscreen.lock="fullscreenLoading"
+          type="primary"
+          @click="preprocess"
+          >确认</el-button
+        >
       </template>
     </el-dialog>
   </div>
@@ -102,6 +141,7 @@ import { ref, onMounted } from "vue";
 import axios from "axios";
 import { Edit } from "@element-plus/icons-vue";
 import { useRouter } from "vue-router";
+import { ElMessage, ElLoading } from "element-plus";
 
 export default {
   components: {
@@ -159,19 +199,12 @@ export default {
     };
 
     const openGenerateDialog = () => {
-<<<<<<< HEAD
-=======
       console.log("click!");
->>>>>>> 868b44b0a87876e2fc8589949b8cc5a65b70ec35
       generateDialogVisible.value = true;
     };
 
     const generate = async () => {
       if (!newData.value.name || !newData.value.year) {
-<<<<<<< HEAD
-        ElMessage.error('请填写完整的实验名称和年份');
-=======
->>>>>>> 868b44b0a87876e2fc8589949b8cc5a65b70ec35
         return;
       }
 
@@ -191,10 +224,12 @@ export default {
           generateDialogVisible.value = false;
           fullscreenLoading.value = false;
           await fetchData();
-          ElMessage.success('数据生成成功');
+          ElMessage.success("数据生成成功");
         } else {
           console.error("Failed to generate data");
-          ElMessage.error(`生成数据失败: ${response.data.message || '未知错误'}`);
+          ElMessage.error(
+            `生成数据失败: ${response.data.message || "未知错误"}`
+          );
         }
       } catch (error) {
         console.error("Error generating data:", error);
@@ -227,7 +262,7 @@ export default {
 
     const preprocess = async () => {
       if (!selectedPreprocess.value) {
-        ElMessage.error('请选择预处理方法');
+        ElMessage.error("请选择预处理方法");
         return;
       }
       fullscreenLoading.value = true;
@@ -245,10 +280,10 @@ export default {
           preprocessDialogVisible.value = false;
           fullscreenLoading.value = false;
           await fetchData();
-          ElMessage.success('预处理成功');
+          ElMessage.success("预处理成功");
         } else {
           console.error("Failed to preprocess data");
-          ElMessage.error(`预处理失败: ${response.data.message || '未知错误'}`);
+          ElMessage.error(`预处理失败: ${response.data.message || "未知错误"}`);
         }
       } catch (error) {
         console.error("Error preprocessing data:", error);
