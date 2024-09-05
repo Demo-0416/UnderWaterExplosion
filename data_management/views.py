@@ -129,13 +129,14 @@ def save_to_db(request):
     }, status=405)
 
 
-# 获取一次实验的全部数据
+# 获取一次实验单个传感器的数据
 def get_data(request):
     if request.method == "GET":
         try:
             year = request.GET["Year"]
             exp_name = request.GET["Exp_Name"]
             state = request.GET["state"]
+            sensor_id = request.GET["SensorId"]
 
             if year is None:
                 return JsonResponse({'code': '4', 'message': 'Year 参数缺失或无效。'})
@@ -143,7 +144,9 @@ def get_data(request):
                 return JsonResponse({'code': '4', 'message': 'Exp_Name 参数缺失或无效。'})
             if state is None:
                 return JsonResponse({'code': '4', 'message': 'state 参数缺失或无效。'})
-            data = data_get(year, exp_name, state)
+            if sensor_id is None:
+                return JsonResponse({'code': '4', 'message': 'Sensor_Id 参数缺失或无效。'})
+            data = data_get(year, exp_name, state, sensor_id)
             return JsonResponse({'code': '0', 'data': data})
         except InfluxDBClientError as e:
             print(f"InfluxDBClient error: {str(e)}")
@@ -194,7 +197,6 @@ def get_history(request):
         try: 
             FollowExp().print_all_history()
             history_list = History.objects.all()
-            print(history_list)
             json_list = json.loads(json.dumps([{
                 'year': item.save_time,
                 'exp_name': item.exp_name,
@@ -243,6 +245,7 @@ def create_new_exp(request):
                 DataSaver().read_csv_and_write_to_influxdb(year, exp_name)
                 return JsonResponse({'code': '0', 'message': msg})
             else:
+                print(str(form.errors))
                 return JsonResponse({'code': '1', 'message': form.errors})
         except Exception as e:
             print(f"Unexpected error: {str(e)}")
