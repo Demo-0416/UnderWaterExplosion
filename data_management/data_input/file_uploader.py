@@ -108,6 +108,11 @@ class DataSaver:
 # 生成或修改history内容用于跟踪每一次实验的状态
 class FollowExp:
 
+    def is_exp_name_exists(exp_name):
+        """检查 exp_name 是否已经存在"""
+        return models.History.objects.filter(exp_name=exp_name).exists()
+
+
     def print_all_history(self):
         try:
             # 查询 History 模型的所有记录
@@ -124,14 +129,21 @@ class FollowExp:
 
 
     # 新增一次实验记录
-    def create_history(self, year, exp_name,status):
+    def create_history(self, year, exp_name, status):
         try:
+            # 检查是否已有相同的 exp_name
+            if models.History.objects.filter(exp_name=exp_name).exists():
+                return f"实验名 '{exp_name}' 已存在，请选择其他名称。"
+
+            # 如果不存在相同的 exp_name，则创建新记录
             new_history = models.History(save_time=year, exp_name=exp_name, status=status)
             new_history.save()
             msg = "新实验生成成功"
             return msg
+
         except Exception as e:
             return str(e)
+
 
     # 修改一次实验的状态从“原始数据”到“预处理后数据”
     def change_state_to_pre(self, year, exp_name):

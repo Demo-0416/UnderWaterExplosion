@@ -57,7 +57,15 @@ def stream_sensor_data(request):
             year = data.get('Year')
             exp_name = data.get('Exp_name')
 
+            if FollowExp.is_exp_name_exists(exp_name):
+                stream_lock.release()
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'exp_name already exist.'
+                }, status=400)
+
             if not year or not exp_name:
+                stream_lock.release()
                 return JsonResponse({
                     'status': 'error',
                     'message': 'Year and experiment name are required.'

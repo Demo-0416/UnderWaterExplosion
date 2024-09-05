@@ -62,7 +62,6 @@ def consume_sensor_data(request):
 
             # 保存数据到db
             DataSaver().save_pre_to_db(year, exp_name, records)
-
             # 保存数据到 CSV 文件
             # filename = f"{year}_{exp_name}_preprocess_data.csv"
             # save_records_to_csv(records, filename)
