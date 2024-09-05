@@ -11,11 +11,11 @@
       <div class="avatar_container">
         <img :src="userInfo.avatar" alt="avatar" class="avatar" />
       </div>
-      <div class="info">
-        用户名: {{ userInfo.username }}
-      </div>
+      <div class="info">用户名: {{ userInfo.username }}</div>
       <div class="operation">
-        <div @click="openGenerateDialog" :class="{ 'disabled': generating }">生成数据</div>
+        <div @click="openGenerateDialog" :class="{ disabled: generating }">
+          生成数据
+        </div>
         <div @click="logout">3D演示</div>
       </div>
     </div>
@@ -47,12 +47,12 @@
       </el-card>
 
       <!-- 历史实验数据时间轴 -->
-      <el-card style="padding-bottom: 20px;">
+      <el-card style="padding-bottom: 20px">
         <h3>历史实验数据</h3>
-        <div style="max-height: 50vh; overflow-y: auto;">
+        <div style="max-height: 50vh; overflow-y: auto">
           <el-row :gutter="20" class="experiment-list">
             <el-col :span="24" v-for="(item, index) in filteredData.slice().reverse()" :key="item.id">
-              <el-card :class="{ 'clickable': canClick(item, index) }"
+              <el-card :class="{ clickable: canClick(item, index) }"
                 @click="canClick(item, index) ? handleItemClick(item) : null">
                 <h3>{{ item.name }}</h3>
                 <p><strong>进度:</strong> {{ item.progress }}</p>
@@ -77,7 +77,7 @@
       </el-form>
       <template #footer>
         <el-button @click="generateDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="generate">确认</el-button>
+        <el-button v-loading.fullscreen.lock="fullscreenLoading" type="primary" @click="generate">确认</el-button>
       </template>
     </el-dialog>
 
@@ -91,31 +91,32 @@
       </el-radio-group>
       <template #footer>
         <el-button @click="preprocessDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="preprocess">确认</el-button>
+        <el-button v-loading.fullscreen.lock="fullscreenLoading" type="primary" @click="preprocess">确认</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
-import { Edit } from '@element-plus/icons-vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from "vue";
+import axios from "axios";
+import { Edit } from "@element-plus/icons-vue";
+import { useRouter } from "vue-router";
 
 export default {
   components: {
     Edit,
   },
   setup() {
+    const fullscreenLoading = ref(false);
     const router = useRouter();
     const userInfo = ref({
-      avatar: new URL('../assets/avatar.jpg', import.meta.url).href,
-      username: 'kiarkira',
+      avatar: new URL("../assets/avatar.jpg", import.meta.url).href,
+      username: "kiarkira",
     });
 
     const filters = ref({
-      experimentName: '',
+      experimentName: "",
       dateRange: [],
     });
 
@@ -127,8 +128,8 @@ export default {
     // 生成数据 Dialog
     const generateDialogVisible = ref(false);
     const newData = ref({
-      name: '',
-      year: '',
+      name: "",
+      year: "",
     });
 
     // 预处理 Dialog
@@ -138,9 +139,11 @@ export default {
 
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/data_management/get_history/');
-        if (response.data.code === '0') {
-          historyData.value = response.data.data.map(item => ({
+        const response = await axios.get(
+          "http://127.0.0.1:8000/data_management/get_history/"
+        );
+        if (response.data.code === "0") {
+          historyData.value = response.data.data.map((item) => ({
             id: item.exp_name,
             name: item.exp_name,
             progress: item.status,
@@ -148,54 +151,65 @@ export default {
           }));
           filteredData.value = historyData.value;
         } else {
-          console.error('Failed to fetch history data');
+          console.error("Failed to fetch history data");
         }
       } catch (error) {
-        console.error('Error fetching history data:', error);
+        console.error("Error fetching history data:", error);
       }
     };
 
     const openGenerateDialog = () => {
-      console.log('click!')
       generateDialogVisible.value = true;
     };
 
     const generate = async () => {
       if (!newData.value.name || !newData.value.year) {
+        ElMessage.error('请填写完整的实验名称和年份');
         return;
       }
 
       generating.value = true;
+      fullscreenLoading.value = true;
 
       try {
-        const response = await axios.post('http://127.0.0.1:8000/data_management/stream_sensor_data/', {
-          Exp_name: newData.value.name,
-          Year: newData.value.year,
-        });
+        const response = await axios.post(
+          "http://127.0.0.1:8000/data_management/stream_sensor_data/",
+          {
+            Exp_name: newData.value.name,
+            Year: newData.value.year,
+          }
+        );
 
         if (response.status === 200) {
           generateDialogVisible.value = false;
+          fullscreenLoading.value = false;
           await fetchData();
+          ElMessage.success('数据生成成功');
         } else {
-          console.error('Failed to generate data');
+          console.error("Failed to generate data");
+          ElMessage.error(`生成数据失败: ${response.data.message || '未知错误'}`);
         }
       } catch (error) {
-        console.error('Error generating data:', error);
+        console.error("Error generating data:", error);
+        ElMessage.error(`生成数据错误: ${error.message}`);
       } finally {
         generating.value = false;
+        fullscreenLoading.value = false;
       }
     };
 
     const canClick = (item, index) => {
-      if (item.progress !== 'ori') {
+      if (item.progress !== "ori") {
         return true;
       }
-      const lastOriIndex = filteredData.value.slice().reverse().findIndex(item => item.progress === 'ori');
-      return index === lastOriIndex;
+      return false;
     };
 
     const isLastOri = (item, index) => {
-      const lastOriIndex = filteredData.value.findIndex(item => item.progress === 'ori');
+      const lastOriIndex = filteredData.value
+        .slice()
+        .reverse()
+        .findIndex((item) => item.progress === "ori");
       return index === lastOriIndex;
     };
 
@@ -205,29 +219,41 @@ export default {
     };
 
     const preprocess = async () => {
-      if (!selectedPreprocess.value) return;
-
+      if (!selectedPreprocess.value) {
+        ElMessage.error('请选择预处理方法');
+        return;
+      }
+      fullscreenLoading.value = true;
       try {
-        const response = await axios.post('http://127.0.0.1:8000/data_process/consume_sensor_data/', {
-          Exp_name: selectedItem.value.name,
-          Year: selectedItem.value.time,
-          Code: selectedPreprocess.value,
-        });
+        const response = await axios.post(
+          "http://127.0.0.1:8000/data_process/consume_sensor_data/",
+          {
+            Exp_name: selectedItem.value.name,
+            Year: selectedItem.value.time,
+            Code: selectedPreprocess.value,
+          }
+        );
 
         if (response.status === 200) {
           preprocessDialogVisible.value = false;
+          fullscreenLoading.value = false;
           await fetchData();
+          ElMessage.success('预处理成功');
         } else {
-          console.error('Failed to preprocess data');
+          console.error("Failed to preprocess data");
+          ElMessage.error(`预处理失败: ${response.data.message || '未知错误'}`);
         }
       } catch (error) {
-        console.error('Error preprocessing data:', error);
+        console.error("Error preprocessing data:", error);
+        ElMessage.error(`预处理错误: ${error.message}`);
+      } finally {
+        fullscreenLoading.value = false;
       }
     };
 
     const handleItemClick = (item) => {
       router.push({
-        path: '/detail',
+        path: "/detail",
         query: {
           value: [item.time, item.name],
         },
@@ -258,6 +284,7 @@ export default {
     });
 
     return {
+      fullscreenLoading,
       userInfo,
       filters,
       historyData,
@@ -287,7 +314,7 @@ export default {
   justify-content: space-between;
   width: 100vw;
   height: 100vh;
-  background: url('../assets/star.jpg') no-repeat center center;
+  background: url("../assets/star.jpg") no-repeat center center;
   background-size: cover;
 }
 
