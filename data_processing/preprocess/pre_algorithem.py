@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
 import mpld3
+import pywt  # 用于小波变换
 
 def iir_filter(input_value, b, a, zi):
     """
@@ -27,11 +28,79 @@ def iir_filter(input_value, b, a, zi):
     output_value, zi = signal.lfilter(b, a, [input_value], zi=zi)
     return output_value[0], zi
 
+def moving_average_filter(data, window_size=5):
+    """
+    移动平均滤波器
 
-def fetch_data(consumer, max_messages=50000):
+    参数:
+    data - 输入数据列表
+    window_size - 滑动窗口大小
+
+    返回:
+    滤波后的数据列表
+    """
+    return np.convolve(data, np.ones(window_size) / window_size, mode='valid')
+
+def kalman_filter(data):
+    """
+    卡尔曼滤波
+
+    参数:
+    data - 输入数据列表
+
+    返回:
+    滤波后的数据列表
+    """
+    n_iter = len(data)
+    sz = (n_iter,)  # 估计数据的尺寸
+    Q = 1e-5  # 过程噪声
+
+    # 分配空间
+    xhat = np.zeros(sz)      # a posteri estimate of x
+    P = np.zeros(sz)         # a posteri error estimate
+    xhatminus = np.zeros(sz) # a priori estimate of x
+    Pminus = np.zeros(sz)    # a priori error estimate
+    K = np.zeros(sz)         # gain or blending factor
+
+    R = 0.1**2  # 测量噪声
+
+    # 初始猜测
+    xhat[0] = data[0]
+    P[0] = 1.0
+
+    for k in range(1, n_iter):
+        # 时间更新
+        xhatminus[k] = xhat[k-1]
+        Pminus[k] = P[k-1] + Q
+
+        # 观测更新
+        K[k] = Pminus[k] / (Pminus[k] + R)
+        xhat[k] = xhatminus[k] + K[k] * (data[k] - xhatminus[k])
+        P[k] = (1 - K[k]) * Pminus[k]
+
+    return xhat
+
+def wavelet_transform(data, wavelet='db1', level=1):
+    """
+    小波变换
+
+    参数:
+    data - 输入数据列表
+    wavelet - 小波类型
+    level - 分解层数
+
+    返回:
+    滤波后的数据列表
+    """
+    coeffs = pywt.wavedec(data, wavelet, level=level)
+    coeffs[-1] = np.zeros_like(coeffs[-1])  # 去除高频噪声
+    reconstructed_signal = pywt.waverec(coeffs, wavelet)
+    return reconstructed_signal
+
+def fetch_data(consumer,code, max_messages=50000, window_size=5, wavelet='db1', level=1):
     # 初始化滤波器
     b, a = signal.butter(4, 0.3)  # 4阶Butterworth滤波器，截止频率为0.3
-    zi_dict = {  # 使用字典来管理每种传感器的滤波器状态
+    zi_dict = {
         'Acceleration': signal.lfilter_zi(b, a) * 0,
         'Strain': signal.lfilter_zi(b, a) * 0,
         'Temperature': signal.lfilter_zi(b, a) * 0,
@@ -42,7 +111,17 @@ def fetch_data(consumer, max_messages=50000):
     records = {'Acceleration': [], 'Strain': [], 'Temperature': [], 'Pressure': []}
     raw_records = {'Acceleration': [], 'Strain': [], 'Temperature': [], 'Pressure': []}
     filtered_records = {'Acceleration': [], 'Strain': [], 'Temperature': [], 'Pressure': []}
-    
+    filter_type='butterworth'
+
+    if code == '1':
+        filter_type='butterworth'
+    elif code == '2':
+        filter_type='moving_average'
+    elif code == '3':
+        filter_type='kalman'
+    elif code == '4':
+        filter_type='wavelet'
+
     message_count = 0
 
     while message_count < max_messages:
@@ -65,13 +144,39 @@ def fetch_data(consumer, max_messages=50000):
         timestamp = record.get('Time', None)
         
         if value is not None and sensor_type in records:
-            # 使用传感器类型特定的滤波器状态
-            zi = zi_dict[sensor_type]
-            filtered_value, zi = signal.lfilter(b, a, [value], zi=zi)
-            zi_dict[sensor_type] = zi  # 更新滤波器状态
-
             raw_records[sensor_type].append((timestamp, value))
-            filtered_records[sensor_type].append((timestamp, filtered_value[0]))
+
+            if filter_type == 'butterworth':
+                # 使用Butterworth滤波器
+                zi = zi_dict[sensor_type]
+                filtered_value, zi = signal.lfilter(b, a, [value], zi=zi)
+                zi_dict[sensor_type] = zi  # 更新滤波器状态
+                filtered_records[sensor_type].append((timestamp, filtered_value[0]))
+
+            elif filter_type == 'moving_average':
+                # 使用移动平均滤波器
+                data = [val for _, val in raw_records[sensor_type]]
+                filtered_data = moving_average_filter(data, window_size)
+                if len(filtered_data) > 0:
+                    filtered_value = filtered_data[-1]
+                    filtered_records[sensor_type].append((timestamp, filtered_value))
+
+            elif filter_type == 'kalman':
+                # 使用卡尔曼滤波器
+                data = [val for _, val in raw_records[sensor_type]]
+                filtered_data = kalman_filter(data)
+                if len(filtered_data) > 0:
+                    filtered_value = filtered_data[-1]
+                    filtered_records[sensor_type].append((timestamp, filtered_value))
+
+            elif filter_type == 'wavelet':
+                # 使用小波变换
+                data = [val for _, val in raw_records[sensor_type]]
+                filtered_data = wavelet_transform(data, wavelet, level)
+                if len(filtered_data) > 0:
+                    filtered_value = filtered_data[-1]
+                    filtered_records[sensor_type].append((timestamp, filtered_value))
+
             records[sensor_type].append(record)
             print(f"Fetched and processed record: {record}")
 
@@ -107,6 +212,7 @@ def process_records(records):
             sensor_data_entry['data'].append(time_value_pair)
 
     return processed
+
 def generate_plots(records):
     fig, axs = plt.subplots(2, 2, figsize=(15, 10))
     sensor_types = ['Acceleration', 'Strain', 'Temperature', 'Pressure']

@@ -159,12 +159,19 @@ export default {
     };
 
     const openGenerateDialog = () => {
+<<<<<<< HEAD
+=======
+      console.log("click!");
+>>>>>>> 868b44b0a87876e2fc8589949b8cc5a65b70ec35
       generateDialogVisible.value = true;
     };
 
     const generate = async () => {
       if (!newData.value.name || !newData.value.year) {
+<<<<<<< HEAD
         ElMessage.error('请填写完整的实验名称和年份');
+=======
+>>>>>>> 868b44b0a87876e2fc8589949b8cc5a65b70ec35
         return;
       }
 
