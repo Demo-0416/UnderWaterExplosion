@@ -15,7 +15,7 @@
         用户名: {{ userInfo.username }}
       </div>
       <div class="operation">
-        <div @click="generate">生成数据</div>
+        <div @click="openGenerateDialog" :class="{ 'disabled': generating }">生成数据</div>
         <div @click="logout">3D演示</div>
       </div>
     </div>
@@ -49,21 +49,51 @@
       <!-- 历史实验数据时间轴 -->
       <el-card style="padding-bottom: 20px;">
         <h3>历史实验数据</h3>
-        <div style="  max-height: 50vh; overflow-y: auto; ">
+        <div style="max-height: 50vh; overflow-y: auto;">
           <el-row :gutter="20" class="experiment-list">
-            <el-col :span="24" v-for="item in filteredData.slice().reverse()" :key="item.id">
-              <el-card @click="item.loading ? null : handleItemClick(item)">
+            <el-col :span="24" v-for="(item, index) in filteredData.slice().reverse()" :key="item.id">
+              <el-card :class="{ 'clickable': canClick(item, index) }"
+                @click="canClick(item, index) ? handleItemClick(item) : null">
                 <h3>{{ item.name }}</h3>
-                <p v-if="item.loading"><strong>生成中...</strong></p>
-                <el-progress v-if="item.loading" :percentage="item.progress" />
-                <p v-else><strong>进度:</strong> {{ item.progress }}</p>
+                <p><strong>进度:</strong> {{ item.progress }}</p>
                 <p><strong>时间:</strong> {{ item.time }}</p>
+                <el-button v-if="isLastOri(item, index)" @click="openPreprocessDialog(item)">进行预处理</el-button>
               </el-card>
             </el-col>
           </el-row>
         </div>
       </el-card>
     </div>
+
+    <!-- 生成数据 Dialog -->
+    <el-dialog v-model="generateDialogVisible" title="生成数据" width="30%">
+      <el-form :model="newData">
+        <el-form-item label="实验名称">
+          <el-input v-model="newData.name" placeholder="请输入实验名称"></el-input>
+        </el-form-item>
+        <el-form-item label="实验年份">
+          <el-input v-model="newData.year" placeholder="请输入实验年份"></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="generateDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="generate">确认</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 预处理 Dialog -->
+    <el-dialog v-model="preprocessDialogVisible" title="选择预处理方式" width="30%">
+      <el-radio-group v-model="selectedPreprocess">
+        <el-radio :label="1">预处理方法 1</el-radio>
+        <el-radio :label="2">预处理方法 2</el-radio>
+        <el-radio :label="3">预处理方法 3</el-radio>
+        <el-radio :label="4">预处理方法 4</el-radio>
+      </el-radio-group>
+      <template #footer>
+        <el-button @click="preprocessDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="preprocess">确认</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -89,97 +119,32 @@ export default {
       dateRange: [],
     });
 
-    const historyData = ref([{
-      "time": "2024",
-      "name": "test2",
-      "progress": "原始数据"
-    },
-    {
-      "time": "2024",
-      "name": "test5",
-      "progress": "原始数据"
-    },
-    {
-      "time": "2024",
-      "name": "test5",
-      "progress": "原始数据"
-    },
-    {
-      "time": "2024",
-      "name": "test5",
-      "progress": "原始数据"
-    },
-    {
-      "time": "2024",
-      "name": "test5",
-      "progress": "原始数据"
-    },
-    {
-      "time": "2024",
-      "name": "test5",
-      "progress": "原始数据"
-    },
-    {
-      "time": "2025",
-      "name": "test3",
-      "progress": "原始数据"
-    }]);
-    const filteredData = ref([{
-      "time": "2024",
-      "name": "test2",
-      "progress": "原始数据"
-    },
-    {
-      "time": "2024",
-      "name": "test5",
-      "progress": "原始数据"
-    },
-    {
-      "time": "2024",
-      "name": "test5",
-      "progress": "原始数据"
-    },
-    {
-      "time": "2024",
-      "name": "test5",
-      "progress": "原始数据"
-    },
-    {
-      "time": "2024",
-      "name": "test5",
-      "progress": "原始数据"
-    },
-    {
-      "time": "2024",
-      "name": "test5",
-      "progress": "原始数据"
-    },
-    {
-      "time": "2025",
-      "name": "test3",
-      "progress": "原始数据"
-    }]);
+    const historyData = ref([]);
+    const filteredData = ref([]);
 
-    const handleItemClick = (item) => {
-      if (!item.loading) {
-        router.push({
-          path: '/detail',
-          query: {
-            value: [item.time, item.name],
-          },
-        });
-      }
-    };
+    const generating = ref(false);
+
+    // 生成数据 Dialog
+    const generateDialogVisible = ref(false);
+    const newData = ref({
+      name: '',
+      year: '',
+    });
+
+    // 预处理 Dialog
+    const preprocessDialogVisible = ref(false);
+    const selectedPreprocess = ref(null);
+    const selectedItem = ref(null); // 当前选择预处理的实验
 
     const fetchData = async () => {
       try {
         const response = await axios.get('http://127.0.0.1:8000/data_management/get_history/');
         if (response.data.code === '0') {
           historyData.value = response.data.data.map(item => ({
-            id: item.exp_name, // 根据实际需要设置合适的 id
+            id: item.exp_name,
             name: item.exp_name,
             progress: item.status,
-            time: item.year, // 这里假设 year 是时间字段
+            time: item.year,
           }));
           filteredData.value = historyData.value;
         } else {
@@ -190,45 +155,99 @@ export default {
       }
     };
 
-    const generate = async () => {
-      // 创建一个新数据对象，包含进度条信息和不可点击状态
-      const newItem = {
-        id: Date.now(), // 使用时间戳作为临时 ID
-        name: '新实验数据', // 你可以根据实际需求设置名字
-        progress: '正在生成...',
-        time: new Date().toISOString().split('T')[0], // 当前日期
-        clickable: false, // 初始化为不可点击状态
-      };
+    const openGenerateDialog = () => {
+      console.log('click!')
+      generateDialogVisible.value = true;
+    };
 
-      // 将新数据添加到历史数据列表的顶部
-      historyData.value.push(newItem);
-      filteredData.value = historyData.value;
+    const generate = async () => {
+      if (!newData.value.name || !newData.value.year) {
+        return;
+      }
+
+      generating.value = true;
 
       try {
-        // 调用后端的 stream_sensor_data 接口
         const response = await axios.post('http://127.0.0.1:8000/data_management/stream_sensor_data/', {
-          // 根据接口要求传递参数
-          Year: '2024', // 传递年份参数
-          Exp_name: 'experiment_1', // 传递实验名称参数
+          Exp_name: newData.value.name,
+          Year: newData.value.year,
         });
 
-        // 如果请求成功，更新新数据的状态
-        if (response.status === 200 && response.data.status === 'streaming started') {
-          // 查找刚添加的这个新数据
-          const item = historyData.value.find(item => item.id === newItem.id);
-          if (item) {
-            // 更新其状态为可点击，并移除进度条信息
-            item.progress = '生成完成';
-            item.clickable = true;
-            filteredData.value = historyData.value;
-          }
+        if (response.status === 200) {
+          generateDialogVisible.value = false;
+          await fetchData();
+        } else {
+          console.error('Failed to generate data');
         }
       } catch (error) {
-        console.error('生成数据失败:', error);
-        // 可以添加错误处理逻辑，比如移除该条数据或显示错误信息
+        console.error('Error generating data:', error);
+      } finally {
+        generating.value = false;
       }
     };
 
+    const canClick = (item, index) => {
+      if (item.progress !== 'ori') {
+        return true;
+      }
+      const lastOriIndex = filteredData.value.slice().reverse().findIndex(item => item.progress === 'ori');
+      return index === lastOriIndex;
+    };
+
+    const isLastOri = (item, index) => {
+      const lastOriIndex = filteredData.value.findIndex(item => item.progress === 'ori');
+      return index === lastOriIndex;
+    };
+
+    const openPreprocessDialog = (item) => {
+      selectedItem.value = item;
+      preprocessDialogVisible.value = true;
+    };
+
+    const preprocess = async () => {
+      if (!selectedPreprocess.value) return;
+
+      try {
+        const response = await axios.post('http://127.0.0.1:8000/data_process/consume_sensor_data/', {
+          Exp_name: selectedItem.value.name,
+          Year: selectedItem.value.time,
+          Code: selectedPreprocess.value,
+        });
+
+        if (response.status === 200) {
+          preprocessDialogVisible.value = false;
+          await fetchData();
+        } else {
+          console.error('Failed to preprocess data');
+        }
+      } catch (error) {
+        console.error('Error preprocessing data:', error);
+      }
+    };
+
+    const handleItemClick = (item) => {
+      router.push({
+        path: '/detail',
+        query: {
+          value: [item.time, item.name],
+        },
+      });
+    };
+
+    const filterData = () => {
+      filteredData.value = historyData.value.filter((item) => {
+        const matchName =
+          !filters.value.experimentName ||
+          item.name.includes(filters.value.experimentName);
+
+        const matchDate =
+          !filters.value.dateRange.length ||
+          (new Date(item.time) >= new Date(filters.value.dateRange[0]) &&
+            new Date(item.time) <= new Date(filters.value.dateRange[1]));
+
+        return matchName && matchDate;
+      });
+    };
 
     const resetFilters = async () => {
       await fetchData();
@@ -243,9 +262,20 @@ export default {
       filters,
       historyData,
       filteredData,
-      handleItemClick,
+      generateDialogVisible,
+      preprocessDialogVisible,
+      newData,
+      selectedPreprocess,
       generate,
+      preprocess,
+      canClick,
+      isLastOri,
+      openGenerateDialog,
+      openPreprocessDialog,
+      handleItemClick,
+      filterData,
       resetFilters,
+      generating,
     };
   },
 };
@@ -341,5 +371,14 @@ export default {
 .el-card {
   padding: 20px;
   border-radius: 10px;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
 }
 </style>
