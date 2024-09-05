@@ -128,7 +128,7 @@ def save_to_db(request):
         'message': 'Method not allowed. Only GET requests are supported.'
     }, status=405)
 
-
+@csrf_exempt
 # 获取一次实验单个传感器的数据
 def get_data(request):
     if request.method == "GET":
@@ -136,7 +136,7 @@ def get_data(request):
             year = request.GET["Year"]
             exp_name = request.GET["Exp_Name"]
             state = request.GET["state"]
-            sensor_id = request.GET["SensorId"]
+            sensor_id = request.GET["SensorID"]
 
             if year is None:
                 return JsonResponse({'code': '4', 'message': 'Year 参数缺失或无效。'})

@@ -178,7 +178,7 @@ def fetch_data(consumer,code, max_messages=50000, window_size=5, wavelet='db1', 
                     filtered_records[sensor_type].append((timestamp, filtered_value))
 
             records[sensor_type].append(record)
-            print(f"Fetched and processed record: {record}")
+            # print(f"Fetched and processed record: {record}")
 
         message_count += 1
 
