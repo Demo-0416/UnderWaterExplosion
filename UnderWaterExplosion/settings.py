@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "visualization.apps.VisualizationConfig",
     "workflow_management.apps.WorkflowManagementConfig",
     "user_management.apps.UserManagementConfig",
+    'django_extensions',
   
 ]
 
