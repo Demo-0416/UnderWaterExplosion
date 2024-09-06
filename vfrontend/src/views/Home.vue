@@ -23,21 +23,13 @@
               <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value"
                 :disabled="item.disabled" />
               </el-select> -->
-            <el-cascader
-              style="width: 100%"
-              v-model="value"
-              :options="options"
-            />
+            <el-cascader style="width: 100%" v-model="value" :options="options" />
           </el-col>
         </el-row>
         <el-row style="">
           <el-col :span="20" :offset="2">
-            <el-cascader
-              style="width: 100%"
-              v-model="sensor_value"
-              :options="sensor_type_options"
-              @change="fentch_ori_data"
-            />
+            <el-cascader style="width: 100%" v-model="sensor_value" :options="sensor_type_options"
+              @change="fentch_ori_data" />
           </el-col>
         </el-row>
       </el-aside>
@@ -46,39 +38,20 @@
           <div class="anim"></div>
         </div>
         <h4>原始数据</h4>
-        <div
-          class="charts-container"
-          v-if="ori_chart_Opts && Object.keys(ori_chart_Opts).length"
-        >
+        <div class="charts-container" v-if="ori_chart_Opts && Object.keys(ori_chart_Opts).length">
           <MyChart :chartOptions="ori_chart_Opts" class="chart-item" />
         </div>
-        <el-select
-          v-model="algorithm_value"
-          placeholder="请选择算法"
-          style="width: 200px; margin-bottom: 10px"
-        >
-          <el-option
-            v-for="item in algorithm_options"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-        /></el-select>
+        <el-select v-model="algorithm_value" placeholder="请选择算法" style="width: 200px; margin-bottom: 10px">
+          <el-option v-for="item in algorithm_options" :key="item.value" :label="item.label"
+            :value="item.value" /></el-select>
         <br />
-        <el-button @click="fentch_pre_data" style="margin-bottom: 15px"
-          >数据预处理</el-button
-        >
+        <el-button @click="fentch_pre_data" style="margin-bottom: 15px">数据预处理</el-button>
         <br />
-        <div
-          class="charts-container"
-          v-if="pre_chart_Opts && Object.keys(pre_chart_Opts).length"
-        >
+        <div class="charts-container" v-if="pre_chart_Opts && Object.keys(pre_chart_Opts).length">
           <MyChart :chartOptions="pre_chart_Opts" class="chart-item" />
         </div>
         <el-button @click="fentch_feature_data">提取数据特征</el-button>
-        <div
-          class="charts-container"
-          v-if="feature_chart_Opts && Object.keys(feature_chart_Opts).length"
-        >
+        <div class="charts-container" v-if="feature_chart_Opts && Object.keys(feature_chart_Opts).length">
           <MyChart :chartOptions="feature_chart_Opts" class="chart-item" />
         </div>
       </el-main>
@@ -441,40 +414,40 @@ const test_Pre = () => {
   setTimeout(() => {
     isLoad.value = false;
     pre_chart_Opts.value = {
-        backgroundColor: '#f7f7f7', // 浅灰色背景
-        title: {
-          text: `Data: test_pre`
+      backgroundColor: '#f7f7f7', // 浅灰色背景
+      title: {
+        text: `Data: test_pre`
+      },
+      tooltip: {
+        trigger: 'axis'
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '12%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'value',
+        boundaryGap: false,
+      },
+      yAxis: {
+        type: 'value'
+      },
+      series: [{
+
+        type: 'line',
+        data: [[-1.2, 3], [-2.4, 7], [8.5, 6], [4.3, 5], [5.4, 5]],
+        symbol: 'none',
+        itemStyle: {
+          color: '#' + (Math.floor(Math.random() * 16777215).toString(16)), // Random color
         },
-        tooltip: {
-          trigger: 'axis'
-        },
-        grid: {
-          left: '3%',
-          right: '4%',
-          bottom: '12%',
-          containLabel: true
-        },
-        xAxis: {
-          type: 'value',
-          boundaryGap: false,
-        },
-        yAxis: {
-          type: 'value'
-        },
-        series: [{
-        
-          type: 'line',
-          data: [[-1.2, 3], [-2.4, 7], [8.5, 6], [4.3, 5], [5.4, 5]],
-          symbol: 'none',
-          itemStyle: {
-            color: '#'+(Math.floor(Math.random()*16777215).toString(16)), // Random color
-          },
-          smooth: true // Smooth lines
-        }],
-        dataZoom: dataZoomOpts1
-      };
-  }, 1600); 
-  
+        smooth: true // Smooth lines
+      }],
+      dataZoom: dataZoomOpts1
+    };
+  }, 1600);
+
 }
 
 const test_Feature = () => {
@@ -564,7 +537,15 @@ const fentch_ori_data = async () => {
         series: [
           {
             type: "line",
-            data: ori_sensor_data.value.data,
+            data: ori_sensor_data.value.data.sort((a, b) => {
+              if (a[0] < b[0]) {
+                return -1; // a 应该在 b 之前
+              }
+              if (a[0] > b[0]) {
+                return 1; // b 应该在 a 之前
+              }
+              return 0; // a 和 b 相等，顺序不变
+            }),
             symbol: "none",
             itemStyle: {
               color: "#" + Math.floor(Math.random() * 16777215).toString(16), // Random color
@@ -597,9 +578,9 @@ const fentch_pre_data = async () => {
     if (response.data.code == 0) {
       pre_sensor_data.value = response.data.data;
       isLoad.value = true;
-  setTimeout(() => {
-    isLoad.value = false;
-  }, 1600); 
+      setTimeout(() => {
+        isLoad.value = false;
+      }, 1600);
       pre_chart_Opts.value = {
         backgroundColor: '#f7f7f7', // 浅灰色背景
         title: {
@@ -635,7 +616,15 @@ const fentch_pre_data = async () => {
         series: [
           {
             type: "line",
-            data: pre_sensor_data.value.data,
+            data: pre_sensor_data.value.data.sort((a, b) => {
+              if (a[0] < b[0]) {
+                return -1; // a 应该在 b 之前
+              }
+              if (a[0] > b[0]) {
+                return 1; // b 应该在 a 之前
+              }
+              return 0; // a 和 b 相等，顺序不变
+            }),
             symbol: "none",
             itemStyle: {
               color: "#" + Math.floor(Math.random() * 16777215).toString(16), // Random color
@@ -645,7 +634,7 @@ const fentch_pre_data = async () => {
         ],
         dataZoom: dataZoomOpts1,
       };
-    }else{
+    } else {
       ElMessage.error(response.data.message);
     }
   } catch (error) {
@@ -744,9 +733,11 @@ const onDragEnd = () => {
   overflow-y: auto;
   overflow: hidden;
 }
+
 .el-row {
   margin-top: 20px;
 }
+
 header {
   width: 100%;
   background-color: #c7c8cbd5;
@@ -815,33 +806,38 @@ main {
   height: 30px;
   background-size: 30px 30px;
   /*添加条纹背景*/
-  background-image: linear-gradient(
-    -45deg,
-    transparent 15px,
-    transparent 8px,
-    #ffe45c 9px,
-    #ffe45c 20px,
-    transparent 21px,
-    transparent 36px,
-    #ffe45c 37px
-  );
+  background-image: linear-gradient(-45deg,
+      transparent 15px,
+      transparent 8px,
+      #ffe45c 9px,
+      #ffe45c 20px,
+      transparent 21px,
+      transparent 36px,
+      #ffe45c 37px);
   animation: load 1.6s 1 linear forwards;
 }
+
 .cont {
   width: 300px;
   height: 20px;
-  position: absolute; /* 绝对定位 */
-  top: 50%; /* 向下偏移50% */
-  left: 50%; /* 向右偏移50% */
-  transform: translate(-50%, -50%); /* 使用位移使其居中 */
+  position: absolute;
+  /* 绝对定位 */
+  top: 50%;
+  /* 向下偏移50% */
+  left: 50%;
+  /* 向右偏移50% */
+  transform: translate(-50%, -50%);
+  /* 使用位移使其居中 */
   background-color: #ee6666;
   border-radius: 5px;
   overflow: hidden;
 }
+
 @keyframes load {
   0% {
     width: 0;
   }
+
   100% {
     width: 680px;
   }
