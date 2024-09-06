@@ -414,7 +414,10 @@ const feature_sensor_data = ref({});
 const feature_chart_Opts = ref({});
 
 const test_Pre = () => {
-  pre_chart_Opts.value = {
+  isLoad.value = true;
+  setTimeout(() => {
+    isLoad.value = false;
+    pre_chart_Opts.value = {
         backgroundColor: '#f7f7f7', // 浅灰色背景
         title: {
           text: `Data: test_pre`
@@ -447,9 +450,12 @@ const test_Pre = () => {
         }],
         dataZoom: dataZoomOpts1
       };
+  }, 1600); 
+  
 }
 
 const test_Feature = () => {
+
   feature_chart_Opts.value = {
         backgroundColor: '#f7f7f7', // 浅灰色背景
         title: {
@@ -562,10 +568,9 @@ const fentch_pre_data = async()=>{
     if(response.data.code == 0) {
       pre_sensor_data.value = response.data.data;
       isLoad.value = true;
-  setTimeout(() => {
+      setTimeout(() => {
     isLoad.value = false;
-  }, 1600); 
-      pre_chart_Opts.value = {
+    pre_chart_Opts.value = {
         backgroundColor: '#f7f7f7', // 浅灰色背景
         title: {
           text: `Data: ${value.value[1]} 传感器 ${sensor_value.value[1]}`
@@ -608,6 +613,8 @@ const fentch_pre_data = async()=>{
         }],
         dataZoom: dataZoomOpts1
       };
+  }, 1600); 
+      
     }else{
       ElMessage.error(response.data.message);
     }
