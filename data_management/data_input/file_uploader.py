@@ -1,3 +1,4 @@
+from datetime import datetime
 import pandas as pd
 from influxdb_client import InfluxDBClient, Point, WriteOptions
 from influxdb_client.client.write_api import SYNCHRONOUS
@@ -10,37 +11,47 @@ from data_management import models
 
 class DataSaver:
 
+
     def read_csv_and_write_to_influxdb(self, year, exp_name):
         client = InfluxDBClient(**settings)
         write_api = client.write_api(write_options=WriteOptions(batch_size=1000))
         measurement = year + '_' + exp_name + '_ori'
         cur_csv_file_path = csv_file_path + year + "_" + exp_name + '_sensor_data.csv'
-        # 读取 CSV 文件并将数据写入 InfluxDB
+        
+        # 读取 CSV 文件
         df = pd.read_csv(cur_csv_file_path)
         points = []
+        
         for index, row in df.iterrows():
-            point = Point(measurement)  # 替换为你的测量名称
-            point = point.tag("SensorID", row['SensorID'])  # 添加 SensorID 作为标签
-            point = point.tag("Type", row['Type'])
-            point = point.field("Position", row['Position'])
-            point = point.field("Value", row['Value'])
-            point = point.field("Time", row['Time'])  # 添加时间戳
-            points.append(point)
+            try:
+                point = Point(measurement)
+                point = point.tag("SensorID", row['SensorID'])
+                point = point.tag("Type", row['Type'])
+                point = point.field("Position", row['Position'])
+                point = point.field("Value", row['Value'])
+                
+                # 将 CSV 中的传感器时间存储为一个字段
+                point = point.tag("Time", row['Time'])  # 存储传感器时间
+                points.append(point)
+                # 使用当前时间作为数据点的时间戳
+            except ValueError as ve:
+                print(f"Skipping row due to invalid data: {row} - Error: {ve}")
 
         try:
             write_api.write(bucket=settings['bucket'], org=settings['org'], record=points)
             client.close()
-            msg = FollowExp().create_history(year, exp_name)
+            msg = FollowExp().create_history(year, exp_name,status='ori')
             print('Successfully wrote ori_data to InfluxDB')
             return msg
         except Exception as e:
-            print(e)
+            print(f"Error during write operation: {str(e)}")
+
 
 
 
     # 将预处理后数据存入influxdb
     def save_pre_to_db(self, year, exp_name, records):
-        # 更改records格式
+    # 更改 records 格式
         all_records = []
         for sensor_type, sensor_data in records.items():
             for data_entry in sensor_data:
@@ -55,6 +66,9 @@ class DataSaver:
                         'Position': position,
                         'Value': data_point['Value']
                     })
+        
+        print(f"Total records processed: {len(all_records)}")
+
         client = InfluxDBClient(**settings)
         write_api = client.write_api(write_options=WriteOptions(batch_size=1000))
         measurement = year + '_' + exp_name + '_pre'
@@ -65,8 +79,10 @@ class DataSaver:
             point = point.tag("Type", record['Type'])
             point = point.field("Position", record['Position'])
             point = point.field("Value", record['Value'])
-            point = point.field("Time", record['Time'])
+            point = point.tag("Time", record['Time'])
             points.append(point)
+
+        print(f"Total points prepared for writing: {len(points)}")
 
         try:
             write_api.write(bucket=settings['bucket'], org=settings['org'], record=points)
@@ -74,6 +90,7 @@ class DataSaver:
             print('Successfully wrote pre_data to InfluxDB')
         except Exception as e:
             print(e)
+
 
 
     def save_fix_to_db(self, year, exp_name, features):
@@ -167,7 +184,7 @@ class FollowExp:
     # 修改一次实验的状态从“预处理后数据”到“特征提取”
     def change_state_to_fix(self, year, exp_name):
         try:
-            count = History.objects.filter(save_time=year, exp_name=exp_name).update(status='特征提取')
+            count = History.objects.filter(save_time=year, exp_name=exp_name).update(status='fix')
             if count == 0:
                 msg = "更新状态失败，未查询到该实验记录"
                 return msg

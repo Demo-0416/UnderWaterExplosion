@@ -54,8 +54,6 @@ class DataSimulator:
         def delivery_report(err, msg):
             if err is not None:
                 print('Message delivery failed: {}'.format(err))
-            # else:
-            #     print('Message delivered to {} [{}] {}'.format(msg.topic(), msg.partition(), msg.value()))
 
         def stream_data():
             time_array = np.arange(0, explosion_duration, 0.01)  # 每个爆炸持续时间的时间数组
@@ -67,7 +65,7 @@ class DataSimulator:
                 explosion_start_time = explosion * (explosion_duration + explosion_interval)
                 for location_index, position in enumerate(positions):
                     for i, sensor_type in enumerate(sensor_types):
-                        sensor_id = location_index * 4 + i
+                        sensor_id = location_index * 4 + i  # 每个位置有 4 个传感器类型，从 0 开始
                         for t in time_array:
                             timestamp = explosion_start_time + t
                             sensor_data = self.simulate_sensor_data(sensor_type, position, np.array([t]))[0]
@@ -103,3 +101,4 @@ class DataSimulator:
             print(f"Data saved to db")
 
         stream_data()
+

@@ -59,7 +59,7 @@ def consume_sensor_data(request):
             records = fetch_data(consumer,code)
             cache.set('preprocessed_data', records, timeout=3600)
             print("Data fetched successfully.")
-
+            print("The length of the array is:", len(records))
             # 保存数据到db
             DataSaver().save_pre_to_db(year, exp_name, records)
             # 保存数据到 CSV 文件
@@ -68,6 +68,8 @@ def consume_sensor_data(request):
 
             # 改变该实验标识的status
             FollowExp().change_state_to_pre(year=year, exp_name=exp_name)
+
+            extract_features_view(request)
 
             consumer.commit()
 

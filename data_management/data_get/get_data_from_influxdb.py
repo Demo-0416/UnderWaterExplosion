@@ -3,15 +3,15 @@ from data_management.setting import settings
 
 
 def data_get(year, exp_name, state, sensor_id):
-    if state == "原始数据":
+    if state == "ori":
         state = 'ori'
         records = data_get_ori_and_pre(year, exp_name, state, sensor_id)
         return records
-    elif state == "预处理数据":
+    elif state == "pre":
         state = 'pre'
         records = data_get_ori_and_pre(year, exp_name, state, sensor_id)
         return records
-    elif state == "特征提取":
+    elif state == "fix":
         state = 'fix'
         records = data_get_fix(year, exp_name, state, sensor_id)
         return records
@@ -26,8 +26,9 @@ def data_get_ori_and_pre(year, exp_name, state, sensor_id):
         |> range(start: 0)
         |> filter(fn: (r) => r["_measurement"] == "{}")
         |> filter(fn: (r) => r["SensorID"] == "{}")
-        |> filter(fn: (r) => r["_field"] == "Value" or r["_field"] == "Time" or r["_field"] == "Position")
-        |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+        |> filter(fn: (r) => r["_field"] == "Value" or r["_field"] == "Position")
+        |> group(columns: ["Time", "SensorID", "_field"])
+        |> pivot(rowKey:["Time"], columnKey: ["_field"], valueColumn: "_value")
         """.format(measurement, sensor_id)
     tables = query_api.query(query)
     datas = []
@@ -40,6 +41,7 @@ def data_get_ori_and_pre(year, exp_name, state, sensor_id):
         'data': datas
     }
     return records
+
     # records = {'Acceleration': [], 'Strain': [], 'Temperature': [], 'Pressure': []}
     # for table in tables:
     #     for record in table:
@@ -66,27 +68,38 @@ def data_get_fix(year, exp_name, state, sensor_id):
     client = InfluxDBClient(**settings)
     query_api = client.query_api()
     measurement = year + '_' + exp_name + '_' + state
-    query = """from(bucket: "test1")
-            |> range(start: 0)
-            |> filter(fn: (r) => r["_measurement"] == "{}")
-            |> filter(fn: (r) => r["SensorID"] == "{}")
-            |> filter(fn: (r) => r["_field"] == "Mean" or r["_field"] == "Max" or r["_field"] == "Min" or
-            r["_field"] == "StdDev" or r["_field"] == "PeakToPeak") 
-            |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
-            """.format(measurement, sensor_id)
+
+    # 查询数据，不使用时间字段
+    query = """from(bucket: "{}")
+        |> range(start: 0)
+        |> filter(fn: (r) => r["_measurement"] == "{}")
+        |> filter(fn: (r) => r["SensorID"] == "{}")
+        |> filter(fn: (r) => r["_field"] == "Mean" or r["_field"] == "Max" or r["_field"] == "Min" or
+        r["_field"] == "StdDev" or r["_field"] == "PeakToPeak")
+        |> group(columns: ["SensorID", "Type"])  // 按 SensorID 和 Type 分组
+        |> pivot(rowKey: ["SensorID"], columnKey: ["_field"], valueColumn: "_value")
+        """.format(settings['bucket'], measurement, sensor_id)
+
     tables = query_api.query(query)
     data = {}
     for table in tables:
-        for row in table:
-            data = {
-                'SensorId': sensor_id,
-                'Max': row['Max'],
-                'Min': row['Min'],
-                'Mean': row['Mean'],
-                'StdDev': row['StdDev'],
-                'PeakToPeak': row['PeakToPeak'],
-            }
+        for row in table.records:
+            try:
+                data = {
+                    'SensorId': row['SensorID'],
+                    'Type': row['Type'],
+                    'Max': row['Max'],
+                    'Min': row['Min'],
+                    'Mean': row['Mean'],
+                    'StdDev': row['StdDev'],
+                    'PeakToPeak': row['PeakToPeak'],
+                }
+            except KeyError as e:
+                print(f"Missing field in record: {e}")
+                # 如果字段缺失，可以考虑设置默认值或继续处理
+
     return data
+
     # records = {'Acceleration': [], 'Strain': [], 'Temperature': [], 'Pressure': []}
     # for table in tables:
     #     for record in table:
