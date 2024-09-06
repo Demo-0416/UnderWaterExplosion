@@ -240,6 +240,12 @@ export default {
       }
     };
 
+    const logout = () => {
+      router.push({
+        path: "/boat",
+      });
+    };
+
     const canClick = (item, index) => {
       if (item.progress !== "ori") {
         return true;
@@ -338,6 +344,7 @@ export default {
       generate,
       preprocess,
       canClick,
+      logout,
       isLastOri,
       openGenerateDialog,
       openPreprocessDialog,
