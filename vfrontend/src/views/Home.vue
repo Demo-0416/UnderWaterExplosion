@@ -437,49 +437,48 @@ const feature_sensor_data = ref({});
 const feature_chart_Opts = ref({});
 
 const test_Pre = () => {
-  pre_chart_Opts.value = {
-    backgroundColor: "#f7f7f7", // 浅灰色背景
-    title: {
-      text: `Data: test_pre`,
-    },
-    tooltip: {
-      trigger: "axis",
-    },
-    grid: {
-      left: "3%",
-      right: "4%",
-      bottom: "12%",
-      containLabel: true,
-    },
-    xAxis: {
-      type: "value",
-      boundaryGap: false,
-    },
-    yAxis: {
-      type: "value",
-    },
-    series: [
-      {
-        type: "line",
-        data: [
-          [-1.2, 3],
-          [-2.4, 7],
-          [8.5, 6],
-          [4.3, 5],
-          [5.4, 5],
-        ],
-        symbol: "none",
-        itemStyle: {
-          color: "#" + Math.floor(Math.random() * 16777215).toString(16), // Random color
+  isLoad.value = true;
+  setTimeout(() => {
+    isLoad.value = false;
+    pre_chart_Opts.value = {
+        backgroundColor: '#f7f7f7', // 浅灰色背景
+        title: {
+          text: `Data: test_pre`
         },
-        smooth: true, // Smooth lines
-      },
-    ],
-    dataZoom: dataZoomOpts1,
-  };
-};
+        tooltip: {
+          trigger: 'axis'
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '12%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'value',
+          boundaryGap: false,
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [{
+        
+          type: 'line',
+          data: [[-1.2, 3], [-2.4, 7], [8.5, 6], [4.3, 5], [5.4, 5]],
+          symbol: 'none',
+          itemStyle: {
+            color: '#'+(Math.floor(Math.random()*16777215).toString(16)), // Random color
+          },
+          smooth: true // Smooth lines
+        }],
+        dataZoom: dataZoomOpts1
+      };
+  }, 1600); 
+  
+}
 
 const test_Feature = () => {
+
   feature_chart_Opts.value = {
     backgroundColor: "#f7f7f7", // 浅灰色背景
     title: {
@@ -598,11 +597,11 @@ const fentch_pre_data = async () => {
     if (response.data.code == 0) {
       pre_sensor_data.value = response.data.data;
       isLoad.value = true;
-      setTimeout(() => {
-        isLoad.value = false;
-      }, 1600);
+  setTimeout(() => {
+    isLoad.value = false;
+  }, 1600); 
       pre_chart_Opts.value = {
-        backgroundColor: "#f7f7f7", // 浅灰色背景
+        backgroundColor: '#f7f7f7', // 浅灰色背景
         title: {
           text: `Data: ${value.value[1]} 传感器 ${sensor_value.value[1]}`,
         },
@@ -646,7 +645,7 @@ const fentch_pre_data = async () => {
         ],
         dataZoom: dataZoomOpts1,
       };
-    } else {
+    }else{
       ElMessage.error(response.data.message);
     }
   } catch (error) {
